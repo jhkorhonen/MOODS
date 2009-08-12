@@ -1,0 +1,16 @@
+MOODS version 1.00
+=======================
+
+MOODS (Motif Occurrence Detection System) is a suite of algorithm for matching
+position weight matrices against a DNA sequences. We have implemented state-of-
+the-art on-line matching algorithms, achieving considerably faster scanning
+speed than a simple brute-force search. Our algorithms are written in C++.
+There are also extensions to the popular BioPerl toolkit and BioPython toolkit.
+
+INSTALLATION
+Algorithms can be compiled to static c++ library by typing "make" in the "src"
+directory. (do always this first)
+
+Installing extensions:
+- For perl extension see perl/README.
+- For python extension see python/README
