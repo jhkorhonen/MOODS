@@ -131,7 +131,7 @@ _search(PyObject *self, PyObject *args)
 	}
 	int num_matrices = (int) PyList_Size(py_matrices);
 	if(num_matrices != thresholds.size()) {
-		//TODO Raise exception
+		PyErr_SetString(PyExc_RuntimeError, "Thresholds should be as many as matrices");
 		return NULL;
 	}
 	for(int i=0; i< num_matrices; i++) {
@@ -143,7 +143,7 @@ _search(PyObject *self, PyObject *args)
 			thresholds[i] = tresholdFromP(matrices.back(), bg, thresholds[i]);
 		}
 		if(matrices[i].size() != 4) {
-			//TODO Raise exception
+			PyErr_SetString(PyExc_RuntimeError, "Matrix size must be 4");
 			return NULL;
 		}
 	}
@@ -170,7 +170,8 @@ _search(PyObject *self, PyObject *args)
 					result = lookaheadFiltrationDNA(q, c_seq, matrices[i], bg, thresholds[i]);
 				}
 				else {
-					//TODO Raise unsupported algorithm exception
+					//Raise unsupported algorithm exception
+					PyErr_SetString(PyExc_RuntimeError, "Unsupported algorithm");
 				}
 			}
 			matches.push_back(result);

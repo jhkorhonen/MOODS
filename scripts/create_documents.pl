@@ -4,6 +4,7 @@ use warnings;
 use strict;
 
 use Pod::Simple::HTML;
+use File::Copy::Recursive qw(fcopy rcopy dircopy fmove rmove dirmove);
  
 sub convert {
 	my $result;
@@ -17,8 +18,16 @@ sub convert {
 	$parser->parse_file($in_file);
 }
 
+rmdir("doc");
+mkdir("doc");
+mkdir("doc/perl");
 
-convert("../perl/lib/MOODS.pm", "doc/moods.html");
-convert("../perl/lib/MOODS/Tools.pm", "doc/tools.html");
+convert("../perl/lib/MOODS.pm", "doc/perl/moods.html");
+convert("../perl/lib/MOODS/Tools.pm", "doc/perl/tools.html");
+
+
+mkdir("doc/python");
+rcopy("../python/MOODS/__init__.py", "doc/python/MOODS/") or die("../python/MOODS not found");
+system("pydoc -w MOODS")== 0 or die("Generating python documents failed");
 
 1;

@@ -19,7 +19,7 @@ for my $line (<FILE>) {
 	if($num_white %4 != 0) { die("Invalid indention at line: ".$line); }
 	$num_white = $num_white/4;
 	$folders[$num_white + 1] = $folders[$num_white].$line;
-	my $filename = "../$folders[$num_white + 1]";
+	my $filename = "../../MOODS/$folders[$num_white + 1]";
 	-e $filename or die ("file not found: ".$filename);
 	if(not $filename =~ m/.+\/$/) {
 		$list .= " ".$filename;	
