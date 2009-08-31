@@ -66,8 +66,9 @@ doubleArray bgFromSequence(const charArray &seq, const int size, const double ps
 charArray readString(std::basic_istream<char> &in);
 charArray readDNA(std::basic_istream<char> &in);
 charArray readAZ(std::basic_istream<char> &in);
-intMatrix readMatrix(std::basic_istream<char> &in);
-scoreMatrix counts2LogOdds(const intMatrix &mat, const doubleArray &bg, const double ps);
+scoreMatrix readMatrix(std::basic_istream<char> &in);
+scoreMatrix reverseComplement(scoreMatrix &mat);
+scoreMatrix counts2LogOdds(const scoreMatrix &mat, const doubleArray &bg, const double ps);
 score_t tresholdFromP(const scoreMatrix &mat, const doubleArray &bg, const double &p);
 score_t maxScore(const scoreMatrix &mat);
 doubleArray expectedDifferences(const scoreMatrix &mat, const doubleArray &bg);
@@ -94,5 +95,6 @@ matchArray lookaheadFiltration(const int q, const charArray &s, const scoreMatri
 matchArray lookaheadFiltrationDNA(const int q, const charArray &s, const scoreMatrix &p, const doubleArray &bg, const score_t tol);
 std::vector<matchArray> multipleMatrixLookaheadFiltration(const int q, const charArray &s, const std::vector<intMatrix> &matrices, const doubleArray &bg, const intArray &tol);
 std::vector<matchArray> multipleMatrixLookaheadFiltrationDNA(const int q, const charArray &s, const std::vector<scoreMatrix> &matrices, const doubleArray &bg, const scoreArray &tol);
+
 
 #endif

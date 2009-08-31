@@ -62,6 +62,24 @@ sub printMatrix {
 	}
 }
 
+=head2 reverseComplement
+
+  Title   : reverseComplement
+  Usage   : my $matrix2 = reverseComplement($matrix1);
+  Args    : matrix reference
+
+=cut
+
+sub reverseMatrix {
+	my $source = shift;
+	my @dest = ();
+	for my $i (3,2,1,0) {
+		my @tmp = reverse(@{$source->[$i]});
+		push(@dest, \@tmp);
+	}
+	return \@dest;
+}
+
 =head2 numResults
 
   Title   : numResults

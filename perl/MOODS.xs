@@ -148,28 +148,6 @@ scoreArray atoScoreArraySV(SV *sv_array) {
     }
     return c_array;
 }
-/**
- * Converts a perl array of integer array references to c++ object
- */
-intMatrix atoIntMatrixSV(SV *sv_matrix) {
-	int i, j, n, m;
-	SV *row;
-	SV **value;
-	intMatrix c_matrix;
-
-	if(SvTYPE(SvRV(sv_matrix)) != SVt_PVAV)
-        return intMatrix();
-	//Get number of rows
-	if((n = av_len((AV *) SvRV(sv_matrix))) <= 0) {
-		return intMatrix();
-	}
-
-	for(i = 0; i <= n; i++) {
-        row = *av_fetch((AV *) SvRV(sv_matrix), i, 1);
-        c_matrix.push_back(atoIntArraySV(row));
-    }
-    return c_matrix;
-}
 
 scoreMatrix atoScoreMatrixSV(SV *sv_matrix) {
 	int i, j, n, m;
@@ -323,7 +301,7 @@ _search(seq, matrices, thresholds, algorithm, q, bgtype, combine, count_log_odds
     	for(i = 0; i < num_matrices; i++) {
     		sv_matrix = *av_fetch((AV *) SvRV(matrices), i, 1);
     		if(count_log_odds)
-    			c_matrices.push_back(counts2LogOdds(atoIntMatrixSV(sv_matrix), bg, 0.1));
+    			c_matrices.push_back(counts2LogOdds(atoScoreMatrixSV(sv_matrix), bg, 0.1));
     		else
     			c_matrices.push_back(atoScoreMatrixSV(sv_matrix));
 

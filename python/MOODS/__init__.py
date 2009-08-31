@@ -1,17 +1,72 @@
 import MOODS._cmodule
 
-def loadMatrix(filename):
+def load_matrix(filename):
     '''
     Loads a matrix from a file given.
-    Returns an array of arrays of numbers.
+    Returns matrix as an array of arrays of numbers.
     '''
     array = []
     file = open(filename, "r")
     for line in file:
         array.append(line.split())
-    return array
+    return [map(float, i) for i in array]
 
-def search(sequence, matrices, thresholds, bg=[0.25, 0.25, 0.25, 0.25], algorithm="lf", q=7, absolute_threshold=False):
+def reverse_complement(matrix):
+    '''
+    Creates a reverse complement of PWM
+    '''
+    r = [row[:] for row in matrix]
+    r.reverse()
+    for me in r:
+        me.reverse() 
+    return r
+
+def transpose(matrix):
+    '''
+    Creates a transpose of matrix array
+    '''
+    res = []
+    for i in range(len(matrix[0])):
+        tmp = []
+        for g in matrix:
+            tmp.append(g[i])
+        res.append(tmp)
+    return res
+
+def max_score(matrix):
+    '''
+    Calculates a maximum score of matrix
+    '''
+    return sum(map(max, transpose(matrix)))
+
+def bg_from_sequence(seq, ps):
+    return _cmodule._bg_from_sequence(str(seq), ps)
+
+def threshold_from_p(matrix, bg, p):
+    '''
+    Calculates an absolute threshold from a probability value
+    '''
+    return _cmodule._threshold_from_p(matrix,bg,p)
+
+def count_log_odds(matrix, bg, ps):
+    '''
+    Calculates a log-odds matrix from a position frequency matrix
+    '''
+    return _cmodule._count_log_odds(matrix, bg, ps)
+
+def total_matches(matchArray):
+    '''
+    Calculates a total number of matches.
+    '''
+    return sum(map((lambda x: len(x)), matchArray))
+
+def flatbg(size = 4):
+    '''
+    Creates a flat background distribution table
+    '''
+    return [(1.0/size) for i in range(size)]
+
+def search(sequence, matrices, thresholds, bg=None, algorithm="lf", q=7, absolute_threshold=False, both_strands=False, combine = True):
     '''
     Finds position weight matrix matches in dna sequence. 
     Returns : 
@@ -32,7 +87,7 @@ def search(sequence, matrices, thresholds, bg=[0.25, 0.25, 0.25, 0.25], algorith
              Optional
               bg  
                  Background distribution - an array of four doubles. By default
-                 the background is flat.
+                 the background is calculated from sequence.
               algorithm  
                  You can switch search algorithm (Doesn't affect on results)
                     "naive" naive algorithm
@@ -48,12 +103,11 @@ def search(sequence, matrices, thresholds, bg=[0.25, 0.25, 0.25, 0.25], algorith
                     change results) You can try different values to improve
                     performance.
               absolute_threshold
-                    1 if thresholds is given as an absolute value instead of p.
-              
+                    True if thresholds is given as an absolute value instead of p.
+              both_strands
+                    You can search for both dna strands.
     '''
     if(type(thresholds) != type(list())):
-        lista = []
-        for i in matrices:
-            lista.append(thresholds)
+        lista = [lista.append(thresholds) for i in matrices]
         thresholds = lista
-    return _cmodule.search(str(sequence), matrices, thresholds, bg, algorithm, q, absolute_threshold, True)
+    return _cmodule._search(str(sequence), matrices, thresholds, bg, algorithm, q, absolute_threshold, combine, both_strands)

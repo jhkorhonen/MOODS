@@ -187,9 +187,9 @@ charArray readAZ(std::basic_istream<char> &in)
 }
 
 // Reads a matrix from input
-intMatrix readMatrix(std::basic_istream<char> &in)
+scoreMatrix readMatrix(std::basic_istream<char> &in)
 {
-    intMatrix ret;
+    scoreMatrix ret;
     unsigned int row = 0;
     char ch = 0;
     bool read = false;
@@ -206,20 +206,35 @@ intMatrix readMatrix(std::basic_istream<char> &in)
         else
         {
             in.putback(ch);
-            int value = 0;
+            score_t value = 0;
             in >> value;
             if (row == ret.size())
-                ret.push_back(vector<int>());
+                ret.push_back(scoreArray());
             ret[row].push_back(value);
             read = true;
         }
     }
-
     return ret;
 }
 
+scoreMatrix reverseComplement(scoreMatrix &mat) {
+	if(mat.size() != 4)
+		return scoreMatrix();
+
+	scoreMatrix ret;
+
+	for(int i = 3; i >= 0; i--) {
+		scoreArray row;
+		for(int k = mat[i].size()-1; k>=0; k--) {
+			row.push_back(mat[i][k]);
+		}
+		ret.push_back(row);
+	}
+	return ret;
+}
+
 // Transforms a weight matrix into a PSSM
-scoreMatrix counts2LogOdds(const intMatrix &mat, const doubleArray &bg, const double ps)
+scoreMatrix counts2LogOdds(const scoreMatrix &mat, const doubleArray &bg, const double ps)
 {
     int numA = mat.size();
     int n = mat[0].size();

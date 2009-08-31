@@ -243,7 +243,7 @@ int main(int argc, char **argv)
             cerr << "Error reading matrices\n";
             exit(1);
         }
-        intMatrix matrix = readMatrix(ifs);
+        scoreMatrix matrix = readMatrix(ifs);
         if (matrix.size() == 4)
         {
             matrices.push_back(  counts2LogOdds( matrix, bg, 0.1 )  );
