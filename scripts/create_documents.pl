@@ -27,7 +27,8 @@ convert("../perl/lib/MOODS/Tools.pm", "doc/perl/tools.html");
 
 
 mkdir("doc/python");
-rcopy("../python/MOODS/__init__.py", "doc/python/MOODS/") or die("../python/MOODS not found");
+#rcopy("../python/MOODS/__init__.py", "doc/python/MOODS/") or die("../python/MOODS not found");
+chdir("doc/python");
 system("pydoc -w MOODS")== 0 or die("Generating python documents failed");
 
 1;
