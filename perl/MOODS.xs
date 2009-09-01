@@ -356,3 +356,71 @@ _search(seq, matrices, thresholds, algorithm, q, bgtype, combine, count_log_odds
         	}
        		PUSHs(newRV((SV *)results));
        	}
+
+
+MODULE = MOODS		PACKAGE = MOODS
+
+SV *
+_count_log_odds(sv_matrix, sv_bg, ps)
+		SV *sv_matrix
+		SV *sv_bg
+        double ps
+    INIT:
+        doubleArray bg;
+        int i, k;
+        scoreMatrix s_matrix = atoScoreMatrixSV(sv_matrix);
+    PPCODE:
+    	bg = atoDoubleArraySV(sv_bg);
+   
+  		scoreMatrix log_odds = counts2LogOdds(s_matrix, bg, ps);
+  		
+       	EXTEND(SP, log_odds.size());
+
+		AV * results;
+       	for(i = 0; i < log_odds.size(); i++) {
+       		results = (AV *)sv_2mortal((SV *)newAV());
+       		for(k = 0; k < log_odds[i].size(); k++) {
+            	av_push(results, newSVnv(log_odds[i][k]));
+        	}
+       		PUSHs(newRV((SV *)results));
+       	}
+       	
+       	
+       	
+MODULE = MOODS		PACKAGE = MOODS
+
+SV *
+_threshold_from_p(sv_matrix, sv_bg, p)
+		SV *sv_matrix
+		SV *sv_bg
+        double p
+    INIT:
+        doubleArray bg;
+        scoreMatrix matrix = atoScoreMatrixSV(sv_matrix);
+    PPCODE:
+    	bg = atoDoubleArraySV(sv_bg);
+   
+       	EXTEND(SP, 1);
+       	PUSHs(newSVnv(tresholdFromP(matrix, bg, p)));
+
+
+MODULE = MOODS		PACKAGE = MOODS
+
+SV *
+_bg_from_sequence(seq, ps)
+		SV *seq
+        double ps
+    INIT:
+        doubleArray bg;
+        SeqSVSource seq_source(seq);
+        SeqIterator seq_it(&seq_source, 1024);
+        int i;
+    PPCODE:
+    	
+       	bg = bgFromSequence(seq_it, 4, ps);
+
+       	EXTEND(SP, bg.size());
+
+       	for(i = 0; i <bg.size(); i++) {
+       		PUSHs(newSVnv(bg[i]));
+       	}

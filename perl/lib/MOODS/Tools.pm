@@ -17,6 +17,8 @@ MOODS::Tools - Some useful tools to work with parameters and results of PWM sear
 
 =head1 Subroutines
 
+=cut
+
 =head2 readMatrix
 
   Title   : readMatrix
@@ -70,7 +72,7 @@ sub printMatrix {
 
 =cut
 
-sub reverseMatrix {
+sub reverseComplement {
 	my $source = shift;
 	my @dest = ();
 	for my $i (3,2,1,0) {

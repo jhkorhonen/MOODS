@@ -149,6 +149,21 @@ sub search {
    	return wantarray ? @ret : \@ret;
 }
 
+
+sub countLogOdds {
+	my @ret = _count_log_odds(@_);
+	return wantarray ? @ret : \@ret;
+}
+
+sub thresholdFromP {
+	return _threshold_from_p(@_);
+}
+
+sub bgFromSequence {
+	my @ret = _bg_from_sequence(@_);
+	return wantarray ? @ret : \@ret;
+}
+
 1;
 
 __END__
