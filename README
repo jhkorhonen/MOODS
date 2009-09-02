@@ -1,15 +1,22 @@
 MOODS version 1.00
 =======================
 
-MOODS (Motif Occurrence Detection System) is a suite of algorithm for matching
-position weight matrices against a DNA sequences. We have implemented state-of-
-the-art on-line matching algorithms, achieving considerably faster scanning
-speed than a simple brute-force search. Our algorithms are written in C++.
-There are also extensions to the popular BioPerl toolkit and BioPython toolkit.
+MOODS is a suite of algorithms for matching position weight matrices (PWM) against DNA sequences. It features advanced matrix matching algorithms implemented in C++ that can be used to scan hundreds of matrices against chromosome-sized sequences in few seconds.
+
+MOODS has been designed to be used as a library wherever PWM matching is needed. It can be used as standalone analysis tool or as a component in larger programs. It contains interfaces for BioPerl and Biopython toolkits. MOODS can thus be easily called from C++, Python and Perl programs.
+
+MOODS is licenced under GPL version 3 license.
+
+The project web page is at http://www.cs.helsinki.fi/group/pssmfind. Please refer there for further information and documentation.
+
+CONTACT
+
+MOODS has been written by Pasi Rastas, Janne Korhonen and Petri Martinmäki. The project is currently maintained by Janne Korhonen (jazkorho@cs.helsinki.fi).
+
 
 INSTALLATION
-Algorithms can be compiled to static c++ library by typing "make" in the "src"
-directory. (do always this first)
+
+You need to compile the C++ library before installing the Perl and Python interfaces. This can be done by running "make" in the "src" directory.
 
 Installing extensions:
 - For perl extension see perl/README.
