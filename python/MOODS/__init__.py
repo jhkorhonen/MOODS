@@ -108,6 +108,6 @@ def search(sequence, matrices, thresholds, bg=None, algorithm="lf", q=7, absolut
                     You can search for both dna strands.
     '''
     if(type(thresholds) != type(list())):
-        lista = [lista.append(thresholds) for i in matrices]
+        lista = [thresholds for i in matrices]
         thresholds = lista
     return _cmodule._search(str(sequence), matrices, thresholds, bg, algorithm, q, absolute_threshold, combine, both_strands)
