@@ -20,6 +20,7 @@
 #include <vector>
 #include <iostream>
 #include <cfloat>
+#include <stdint.h>
 #include "seq_buffer.h"
 
 

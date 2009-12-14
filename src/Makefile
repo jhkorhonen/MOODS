@@ -4,7 +4,7 @@ OBJECT_FILES = pssm_algorithms.o find_pssm_dna.o
 all: find_pssm_dna libpssm.a
 
 find_pssm_dna: libpssm.a find_pssm_dna.o
-	g++ find_pssm_dna.o -L ./ -lpssm -o find_pssm_dna
+	g++ find_pssm_dna.o -L. -lpssm -o find_pssm_dna
 	
 libpssm.a: pssm_algorithms.o
 	ar rcs libpssm.a pssm_algorithms.o
