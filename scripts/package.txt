@@ -33,4 +33,5 @@ perl/
         MOODS.t
     Makefile.PL
     README
-    COPYING
+    COPYING.BIOPYTHON
+    COPYING.GPLv3

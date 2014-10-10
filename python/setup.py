@@ -8,7 +8,7 @@ module1 = Extension('MOODS._cmodule',
                     libraries=['pssm'])
 
 setup (name = 'MOODS',
-       version = '1.0',
-       description = 'This is a demo package',
+       version = '1.0.1',
+       description = 'MOODS: Motif Occurrence Detection Suite',
        packages = ['MOODS',],
        ext_modules = [module1])

@@ -1,8 +1,0 @@
-Makefile.PL
-MANIFEST
-ppport.h
-MOODS.xs
-README
-t/MOODS.t
-lib/MOODS.pm
-lib/MOODS/Tools.pm

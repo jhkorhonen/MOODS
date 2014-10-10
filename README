@@ -1,11 +1,11 @@
-MOODS version 1.00
+MOODS version 1.0.1
 =======================
 
 MOODS is a suite of algorithms for matching position weight matrices (PWM) against DNA sequences. It features advanced matrix matching algorithms implemented in C++ that can be used to scan hundreds of matrices against chromosome-sized sequences in few seconds.
 
 MOODS has been designed to be used as a library wherever PWM matching is needed. It can be used as standalone analysis tool or as a component in larger programs. It contains interfaces for BioPerl and Biopython toolkits. MOODS can thus be easily called from C++, Python and Perl programs.
 
-MOODS is licenced under GPL version 3 license.
+MOODS is licenced under GPL version 3 license and under the Biopython license, so you may use it under terms of either of those licenses. See COPYING.GPLv3 and COPYING.BIOPYTHON files for license details.
 
 The project web page is at http://www.cs.helsinki.fi/group/pssmfind. Please refer there for further information and documentation.
 
