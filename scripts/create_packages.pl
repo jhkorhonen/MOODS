@@ -19,7 +19,7 @@ sub create_package {
 		if($num_white %4 != 0) { die("Invalid indention at line: ".$line); }
 		$num_white = $num_white/4;
 		$folders[$num_white + 1] = $folders[$num_white].$line;
-		my $filename = "../../MOODS/$folders[$num_white + 1]";
+		my $filename = "MOODS/$folders[$num_white + 1]";
 		-e $filename or die ("file not found: ".$filename);
 		if(not $filename =~ m/.+\/$/) {
 			$list .= " ".$filename;	
@@ -27,7 +27,7 @@ sub create_package {
 		}
 	}
 	close(FILE);
-	system("tar cvvzf ".$package_name." ".$list) == 0 or die("creating package failed");
+	system("tar -C ../../ -cvvzf ".$package_name." ".$list) == 0 or die("creating package failed");
 }
 
 create_package("package.txt", "MOODS.tar.gz");

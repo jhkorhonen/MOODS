@@ -1,4 +1,5 @@
-COPYING
+COPYING.BIOPYTHON
+COPYING.GPLv3
 README
 src/
     find_pssm_dna.cpp
@@ -27,5 +28,3 @@ perl/
         MOODS.t
     Makefile.PL
     README
-    COPYING.BIOPYTHON
-    COPYING.GPLv3
