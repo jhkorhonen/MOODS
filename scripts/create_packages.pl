@@ -20,7 +20,7 @@ sub create_package {
 		$num_white = $num_white/4;
 		$folders[$num_white + 1] = $folders[$num_white].$line;
 		my $filename = "MOODS/$folders[$num_white + 1]";
-		-e $filename or die ("file not found: ".$filename);
+		-e "../../$filename" or die ("file not found: ".$filename);
 		if(not $filename =~ m/.+\/$/) {
 			$list .= " ".$filename;	
 			print $filename."\n";
