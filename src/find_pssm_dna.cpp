@@ -19,8 +19,6 @@
 #include "seq_buffer.h"
 
 class SeqStreamSource : public SeqSourceI {
-	char c;
-	int value;
 	std::istream &in;
 	static const int FILE_BUFFER_SIZE = 1024;
 	char buffer[FILE_BUFFER_SIZE];

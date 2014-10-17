@@ -1,4 +1,5 @@
-CXXFLAGS = -Wall -O3 -fPIC -fforce-addr -funroll-loops -frerun-cse-after-loop -frerun-loop-opt -falign-functions=4
+# CXXFLAGS = -Wall -O3 -fPIC -fforce-addr -funroll-loops -frerun-cse-after-loop -frerun-loop-opt -falign-functions=4
+CXXFLAGS = -Wall -O3 -fPIC -funroll-loops -falign-functions=4
 OBJECT_FILES = pssm_algorithms.o find_pssm_dna.o
 
 all: find_pssm_dna libpssm.a
