@@ -5,7 +5,7 @@ matrix = [ [10,0,0],
            [0,0,10],
            [10,10,10]]
 
-results = MOODS.search('actgtggcgtcaacgtaggccaacgtggacccgtacgtaaacgaagaggggtagtc', [matrix], 30, absolute_threshold=30)
+results = MOODS.search('actgtggcgtcaacgtaggccaacgtggacccgtacgtaaacgaagaggggtagtc', [matrix], 30, absolute_threshold=True)
 
 for i in results:
     for (position, score) in i:
