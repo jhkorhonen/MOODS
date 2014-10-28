@@ -248,7 +248,7 @@ static PyObject *_search(PyObject *self, PyObject *args)
 	for(int i = 0; i < matches.size(); i++) {
 		PyObject *new_match_list = PyList_New(matches[i].size());
 		for(int j=0; j < matches[i].size(); j++) {
-			PyList_SET_ITEM(new_match_list, j, Py_BuildValue("Ld", matches[i][j].position, matches[i][j].score));
+			PyList_SET_ITEM(new_match_list, j, Py_BuildValue("ld", matches[i][j].position, matches[i][j].score));
 		}
 		PyList_SET_ITEM(results, i, new_match_list);
 	}
