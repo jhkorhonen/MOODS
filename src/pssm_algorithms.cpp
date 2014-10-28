@@ -1669,7 +1669,7 @@ matchArray lookaheadFiltration(const int q, const charArray &s, const scoreMatri
     for (position_t ii = window_pos; ii < offset; ++ii)
         code = (code * numA) + s[ii];
 
-    for (position_t i = 0; i <= n - m + 1; ++i)
+    for (position_t i = 0; i <= n - m; ++i)
     {
         code = shifts[code] + s[i + offset];
 
@@ -1824,7 +1824,7 @@ matchArray lookaheadFiltrationDNA(const int q, const charArray &s, const scoreMa
         code = (code << BITSHIFT) + s[ii];
 
 
-    for (position_t i = 0; i <= n - m + 1; ++i)
+    for (position_t i = 0; i <= n - m; ++i)
     {
         code = ((code << BITSHIFT) + s[i + offset]) & BITAND;
 
