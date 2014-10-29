@@ -130,49 +130,31 @@ static PyObject *_search(PyObject *self, PyObject *args)
     charArray c_seq;
     PyObject *py_matrices;
     PyObject *py_thresholds;
+    PyObject *py_bg;
+
     const char *algorithm;
     int q;
-    PyObject *py_absolute_threshold;
-    PyObject *py_bg;
     PyObject *py_combine;
-    PyObject *py_both_strands;
-    bool absolute_threshold;
-    double ps = 0.1;
     bool combine = false;
-    bool both_strands;
     std::vector<matchArray> matches;
 
     std::vector<scoreMatrix> matrices;
     scoreArray thresholds;
     scoreArray bg;
 
-    if (!PyArg_ParseTuple(args, "sOOOsiOOO", &sequence, &py_matrices, &py_thresholds, &py_bg, &algorithm, &q, &py_absolute_threshold, &py_combine, &py_both_strands))
+    if (!PyArg_ParseTuple(args, "sOOOsiO", &sequence, &py_matrices, &py_thresholds, &py_bg, &algorithm, &q, &py_combine))
         return NULL;
 
-    absolute_threshold = (bool) PyObject_IsTrue(py_absolute_threshold);
     combine = (bool) PyObject_IsTrue(py_combine);
     thresholds = atoDoubleArray(py_thresholds);
-    both_strands = (bool) PyObject_IsTrue(py_both_strands);
+    bg = atoDoubleArray(py_bg);
 
     c_seq = convertSequence(sequence);
-    if(py_bg != Py_None) {
-    	bg = atoDoubleArray(py_bg);
-    }
-    else {
-    	if(!absolute_threshold)
-    		bg = bgFromSequence(c_seq, 4, ps);
-    	else
-    		bg = flatBG(4);
-    }
 
     if(!PyList_Check(py_matrices)) {
 		return NULL;
 	}
 	int num_matrices = (int) PyList_Size(py_matrices);
-	if(num_matrices != thresholds.size()) {
-		PyErr_SetString(PyExc_RuntimeError, "Thresholds should be as many as matrices");
-		return NULL;
-	}
 
 	for(int i=0; i< num_matrices; i++) {
 		matrices.push_back(atoDoubleMatrix(PyList_GET_ITEM(py_matrices, i)));
@@ -185,19 +167,6 @@ static PyObject *_search(PyObject *self, PyObject *args)
 	//Check if parameter parsing has raised an exception
 	if(PyErr_Occurred()) {
 		return NULL;
-	}
-
-	if(both_strands) {
-		for(int i=0; i < num_matrices; i++) {
-			matrices.push_back(reverseComplement(matrices[i]));
-			thresholds.push_back(thresholds[i]);
-		}
-	}
-	if(!absolute_threshold) {
-		for(int i=0; i< matrices.size(); i++) {
-			matrices[i] = counts2LogOdds(matrices[i], bg, ps);
-			thresholds[i] = tresholdFromP(matrices[i], bg, thresholds[i]);
-		}
 	}
 
 	if(matrices.size() == 1)
@@ -231,19 +200,7 @@ static PyObject *_search(PyObject *self, PyObject *args)
 			matches.push_back(result);
 		}
 	}
-	if(both_strands) {
-		if(matches.size() != 2 * num_matrices) {
-			PyErr_SetString(PyExc_RuntimeError, "Unknown error");
-			return NULL;
-		}
-		for(int i=0; i< num_matrices; i++) {
-			while(!matches[num_matrices + i].empty()) {
-				matches[num_matrices + i].back().position = -matches[num_matrices + i].back().position;
-				matches[i].push_back(matches[num_matrices + i].back());
-				matches[num_matrices + i].pop_back();
-			}
-		}
-	}
+
 	PyObject *results = PyList_New(matches.size());
 	for(int i = 0; i < matches.size(); i++) {
 		PyObject *new_match_list = PyList_New(matches[i].size());
