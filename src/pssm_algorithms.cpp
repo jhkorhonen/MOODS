@@ -239,11 +239,11 @@ scoreMatrix counts2LogOdds(const scoreMatrix &mat, const doubleArray &bg, const 
 
         int count = 0;
         for (int j = 0; j < numA; ++j)
-            count += mat[j][i];
+            count += mat[j][i] + ps*bg[j];
 
         for (int j = 0; j < numA; ++j)
         {
-            double f = (mat[j][i] + bg[j])  / (count + ps);
+            double f = (mat[j][i] + ps*bg[j])  / (count);
             ret[j][i] = log(f) - log(bg[j]);
         }
     }
