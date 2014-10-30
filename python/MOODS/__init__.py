@@ -41,17 +41,52 @@ def max_score(matrix):
     return sum(map(max, transpose(matrix)))
 
 def bg_from_sequence(seq, ps):
+    '''
+    Estimates the background distribution of nucleotides
+    from seq. The pseudocount ps is added to all counts.
+    '''
     return _cmodule._bg_from_sequence(str(seq), ps)
 
 def threshold_from_p(matrix, bg, p):
     '''
-    Calculates an absolute threshold from a probability value
+    Calculates an absolute threshold from a probability value.
+    Returns: 
+              A threshold value T such that the probability that
+              the distribution bg generates a sequence scoring
+              at least T on the input matrix is p.
     '''
     return _cmodule._threshold_from_p(matrix,bg,p)
 
 def count_log_odds(matrix, bg, ps, log_base=None):
     '''
     Calculates a log-odds matrix from a position frequency matrix
+    Returns: 
+              The input PWM matrix transformed to log-odds scores.
+              The score for nucleotide N and position i is
+              
+                 log ( matrix[N][i] + ps * bg[N] ) / C[i]
+                   - log ( bg[N] ),
+                   
+              where C[i] is the sum of terms
+              
+                 matrix[N][i] + ps * bg[N]
+                 
+              for all nucleotides N. 
+    Parameters: 
+             Obligatory:
+                matrix
+                    Input PWM as a float or integer matrix.
+                bg
+                    Normalised background distribution given as
+                    a list of four floats.
+                ps
+                    Multiplier for pseudocounts. If matrix is
+                    already a frequency matrix, you may want to
+                    set this to zero.
+             Optional:
+                log_base  
+                    Base for logarithms. Defaults to natural
+                    logarithm if None is given.
     '''
     ret = _cmodule._count_log_odds(matrix, bg, ps)
     
@@ -77,7 +112,7 @@ def search(sequence, matrices, thresholds,
              algorithm="lf", q=7, combine = True):
     '''
     Finds position weight matrix matches in DNA sequence. 
-    Returns : 
+    Returns: 
               An array of references to result arrays. There is one result
               array for each matrix, in the same order as the input matrices.
               Each result array is a list of tuples of position and score 
@@ -85,40 +120,49 @@ def search(sequence, matrices, thresholds,
     Parameters: 
              Obligatory:
                 sequence
-                    DNA sequence as python string object, containing characters acgtACGT.
+                    DNA sequence as python string object, containing characters
+                    acgtACGT.
                 matrices
-                    An array of matrices, each represented as a list of four lists of
-                    equal length. These lists correspond the frequencies or scores of the
-                    nucleotides A, C, G and T, respectively.
+                    An array of matrices, each represented as a list of four
+                    lists of equal length. These lists correspond the
+                    frequencies or scores of the nucleotides A, C, G and T,
+                    respectively.
                 thresholds
-                    A number or a list of numbers, used as threshold values for matrix scanning. 
-                    If a single number is given, it is used for all matrices; otherwise, there
-                    should be as many threshold values as there are matrices.
+                    A number or a list of numbers, used as threshold values for
+                    matrix scanning.  If a single number is given, it is used
+                    for all matrices; otherwise, there should be as many
+                    threshold values as there are matrices.
              Optional:
                 bg  
-                    Background distribution as an array of four doubles, corresponding
-                    to the frequencies of A, C, G and T, respectively. By default
-                    the background is estimated from sequence.
+                    Background distribution as an array of four doubles,
+                    corresponding to the frequencies of A, C, G and T,
+                    respectively. By default the background is estimated from
+                    the sequence.
                 convert_log_odds
-                    If True, assumes that the input matrices are frequency or count matrices, and
-                    converts them to log-odds scoring matrices; otherwise, treat them as scoring
-                    matrices. Default True.
+                    If True, assumes that the input matrices are frequency or
+                    count matrices, and converts them to log-odds scoring
+                    matrices using function count_log_odds; otherwise, treat
+                    them as scoring matrices. Default True.
                 threshold_from_p
-                    If True, assumes that thresholds are p-values and computes the corresponding
-                    absolute threshold based on the matrix; otherwise the threshold is used as a
-                    hard cut-off. Default True.
+                    If True, assumes that thresholds are p-values and computes
+                    the corresponding absolute threshold based on the matrix
+                    using function threshold_from_p; otherwise the threshold
+                    is used as a hard cut-off. Default True.
                 log_base
-                    Base for logarithms used in log-odds computations. Relevant if using
-                    convert_log_odds=True and threshold_from_p=False. Defaults to natural logarithm
-                    if None is given.
+                    Base for logarithms used in log-odds computations. Relevant
+                    if using convert_log_odds=True and threshold_from_p=False.
+                    Defaults to natural logarithm if None is given.
                 pseudocount
-                    Pseudocount added to matrix counts in log-odds conversion and to sequence symbol
-                    counts when estimating the background from sequence. Default 0.1.
+                    Pseudocount added to matrix counts in log-odds conversion
+                    and to sequence symbol counts when estimating the
+                    background from sequence. Default 0.1.
                 both_strands
-                    Scans against reverse complement sequence in addition to the input sequence.
-                    Hits on reverse complement are reported at position [position - sequence_length],
-                    which is always negative. The actual hit site for any hit is always
-                    seq[pos, pos + matrix_length]. Default False.
+                    Scans against reverse complement sequence in addition to
+                    the input sequence. Hits on reverse complement are reported
+                    at position [position - sequence_length], which is always
+                    negative. The actual hit site for any hit is always
+                    seq[pos, pos + matrix_length].
+                    Default False.
              Tuning parameters:
                 (Optional, do not affect the results, but can give minor
                  speed-ups in some cases. You can pretty much ignore these.)
