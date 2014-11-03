@@ -27,8 +27,12 @@ my $matrix2 =
 				[0,4,0,1,0,0,5]
 			];
 
-#we use the same threshold for both matrices, we could also spesify -thresholds => [0.011, 0.011]
-my @results = MOODS::search(-seq => $seq, -matrices => [$matrix1, $matrix2],-threshold => 0.011, -flatbg => 1);
+# By default the matrices are converted to log-odds scoring matrices and the actual score threshold
+# is computed from p-value given as -threshold 
+#
+# We use the same threshold for both matrices, we could also specify -thresholds => [0.001, 0.001].
+
+my @results = MOODS::search(-seq => $seq, -matrices => [$matrix1, $matrix2], -threshold => 0.001, -flatbg => 1);
 
 
 #we print only the number of results at this time

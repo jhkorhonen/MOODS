@@ -174,7 +174,7 @@ sub search {
    		else { die("Invalid -algorithm parameter"); }
    	}
    	
-   	my @ret = _search($params{-seq}, $params{-matrices}, $params{-thresholds},$alg, $params{-q}, @params{-bgtype}, $params{-combine}, $params{-count_log_odds}, $params{-threshold_from_p}, $params{-buffer_size}, $params{-bg}, $params{-pseudocount}, $params{-log_base});
+   	my @ret = _search($params{-seq}, $params{-matrices}, $params{-thresholds},$alg, $params{-q}, $params{-bgtype}, $params{-combine}, $params{-count_log_odds}, $params{-threshold_from_p}, $params{-buffer_size}, $params{-bg}, $params{-pseudocount}, $params{-log_base});
    	
    	return wantarray ? @ret : \@ret;
 }

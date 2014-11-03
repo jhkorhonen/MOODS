@@ -19,6 +19,6 @@ my $seq = Bio::Seq->new(-seq              => 'actgtggcgtcaacgtaggccaacgtggacccgt
                        -alphabet         => 'dna' );
 
 
-my @results = search(-seq => $seq, -matrix => $matrix, -threshold => 30, -absolute => 1);
+my @results = search(-seq => $seq, -matrix => $matrix, -threshold => 30, -count_log_odds => 0, -threshold_from_p => 0);
 
 printResults($results[0]);
