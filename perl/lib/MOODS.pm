@@ -41,34 +41,64 @@ XSLoader::load('MOODS', $VERSION);
            Obligatory
             -seq  BioPerl sequence object
             -matrix or -matrices
-               You can give one or multiple matrices. One matrix is represented 
-               as a typical perl multidimensional array: a reference to array of 
-               references to arrays of numbers.
+                 A matrix or a list of matrices. One matrix is represented 
+                 as a typical perl multidimensional array: a reference to array of 
+                 references to arrays of numbers, corresponding to the frequencies
+                 or scores of the nucleotides A, C, G and T, respectively
             -threshold or -thresholds
-               One threshold is ok for as many matrices as you want, but you
-               can give different threshold for each matrix. 
+                 A number or a list of numbers, used as threshold values for
+                 matrix scanning.  If a single number is given, it is used
+                 for all matrices; otherwise, there should be as many
+                 threshold values as there are matrices.
+
            Optional
-            -algorithm  You can switch search algorithm (Doesn't change results)
-                "naive" naive algorithm
-                "pla" permutated lookahead algorithm
-                "supera" super alphabet algorithm. 
-                  - Good for long matrices (> 20)
-                "lf" lookahead filtration algorithm. 
-                  - Default algorithm in most cases.
-                  - Sequence can be searched with multiple matrices 
-                    simultaneously. 
-                  - You should use this when you have large amount of matrices.
-            -q  You can optionally give a parameter for algorithm (Doesn't 
-                change results)
-            -combine  If you use lookahead filtration algorithm and don't wan't
-                to use multiple matrix simultaneous search, you can spesify
-                this parameter to 0. (usually slows down)
-            -absolute_threshold  1 if threshold is given as an absolute value.
+            -bg  Background distribution - an array of four doubles. If neither
+                 -bg or -flatbg is given, the background is estimated from
+                 the sequence. 
+            -flatbg
+                 If 1, the background distribution is set to a distribution
+                 giving equal probability to all characters. Not compatible
+                 with -bg. If neither -bg or -flatbg is given, the background
+                 is estimated from the sequence. 
+            -count_log_odds
+                 If 1, assumes that the input matrices are frequency or
+                 count matrices, and converts them to log-odds scoring
+                 matrices using function count_log_odds; otherwise, treat
+                 them as scoring matrices. Default 1.
+            -threshold_from_p
+                 If 1, assumes that thresholds are p-values and computes
+                 the corresponding absolute threshold based on the matrix
+                 using function threshold_from_p; otherwise the threshold
+                 is used as a hard cut-off. Default 1.
+            -log_base
+                 Base for logarithms used in log-odds computations. Relevant
+                 if using convert_log_odds=True and threshold_from_p=False.
+                 Defaults to natural logarithm if parameter is not given.
+            -pseudocount
+                 Pseudocount used in log-odds conversion and added to
+                 sequence symbol counts when estimating the background
+                 from sequence. Default 1.
+
+           Tuning parameters:
+            (Optional, do not affect the results, but can give minor
+             speed-ups in some cases. You can pretty much ignore these.)
+            -algorithm  Selects the algorithm to use for scanning
+                 "naive" naive algorithm
+                 "pla" permutated lookahead algorithm
+                 "supera" super alphabet algorithm. 
+                   - Good for long matrices (> 20)
+                 "lf" lookahead filtration algorithm. 
+                   - Default algorithm in most cases.
+                   - Sequence can be searched with multiple matrices 
+                     simultaneously. 
+                   - You should use this when you have large amount of matrices.
+            -q   An integer, used for fine-tuning "supera" and "lf" algorithms.
+                 The default value 7 should be ok pretty much always, but can 
+                 be tuned to possibly slightly increase performance. 
+            -combine
+                 determines whether "lf" algorithm combines all
+                 matrices to a single scanning pass. 
             -buffer_size
-            -bg  Background distribution - an array of four doubles. By default
-                 the background is calclulated from sequence. 
-            -flatbg  1 if background distribution is not calculated from 
-                 the sequence.
 
 =cut
 
@@ -106,11 +136,11 @@ sub search {
    		die("Either -matrix or -matrices must be specified");
    	}
     
-    if(exists $args{-absolute_threshold} && $args{-absolute_threshold}) {
-    	$args{-count_log_odds} = 0;
-    	$args{-threshold_from_p} = 0;
-    	delete $args{-absolute_threshold};
-    }
+    # if(exists $args{-absolute_threshold} && $args{-absolute_threshold}) {
+    #     $args{-count_log_odds} = 0;
+    #     $args{-threshold_from_p} = 0;
+    #     delete $args{-absolute_threshold};
+    # }
     
     if(exists $args{-bg} && $args{-bg}) {
     	if((ref $args{-bg} ne "ARRAY") || scalar(@{$args{-bg}}) != 4)  { die("Invalid background"); }
@@ -123,7 +153,7 @@ sub search {
     }
     
     #default parameters
-    my %params = (-seq => 0, -matrices => 0, -thresholds => 0, -algorithm => "undefined", -q => 7, -bgtype => 0, -combine => 1, -count_log_odds => 1, -threshold_from_p => 1, -buffer_size => -1, -bg => 0);
+    my %params = (-seq => 0, -matrices => 0, -thresholds => 0, -algorithm => "undefined", -q => 7, -bgtype => 0, -combine => 1, -count_log_odds => 1, -count_log_odds => 1, -threshold_from_p => 1, -buffer_size => -1, -bg => 0, -pseudocount => 1, -log_base => 0);
     
     #check for invalid parameters
     foreach my $param (keys %args) {
@@ -144,7 +174,7 @@ sub search {
    		else { die("Invalid -algorithm parameter"); }
    	}
    	
-   	my @ret = _search($params{-seq}, $params{-matrices}, $params{-thresholds},$alg, $params{-q}, $params{-bgtype}, $params{-combine}, $params{-count_log_odds}, $params{-threshold_from_p}, $params{-buffer_size}, $params{-bg});
+   	my @ret = _search($params{-seq}, $params{-matrices}, $params{-thresholds},$alg, $params{-q}, @params{-bgtype}, $params{-combine}, $params{-count_log_odds}, $params{-threshold_from_p}, $params{-buffer_size}, $params{-bg}, $params{-pseudocount}, $params{-log_base});
    	
    	return wantarray ? @ret : \@ret;
 }

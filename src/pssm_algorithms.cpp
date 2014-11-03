@@ -250,6 +250,31 @@ scoreMatrix counts2LogOdds(const scoreMatrix &mat, const doubleArray &bg, const 
     return ret;
 }
 
+// Transforms a weight matrix into a PSSM with non-natural logarithm
+scoreMatrix counts2LogOdds(const scoreMatrix &mat, const doubleArray &bg, const double ps, const double log_base)
+{
+    int numA = mat.size();
+    int n = mat[0].size();
+
+    vector<score_t> col(n, 0);
+    scoreMatrix ret(numA, col);
+
+    for (int i = 0; i < n; ++i)
+    {
+
+        int count = 0;
+        for (int j = 0; j < numA; ++j)
+            count += mat[j][i] + ps*bg[j];
+
+        for (int j = 0; j < numA; ++j)
+        {
+            double f = (mat[j][i] + ps*bg[j])  / (count);
+            ret[j][i] = (log(f) - log(bg[j])) / log(log_base);
+        }
+    }
+    return ret;
+}
+
 // Calculates a threshold for a scoring matrix from a given p value
 score_t tresholdFromP(const scoreMatrix &pssm, const doubleArray &bg, const double &p)
 {

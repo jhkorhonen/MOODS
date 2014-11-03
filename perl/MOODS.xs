@@ -243,7 +243,7 @@ public:
 MODULE = MOODS		PACKAGE = MOODS
 
 SV *
-_search(seq, matrices, thresholds, algorithm, q, bgtype, combine, count_log_odds, threshold_from_p, buffer_size, sv_bg)
+_search(seq, matrices, thresholds, algorithm, q, bgtype, combine, count_log_odds, threshold_from_p, buffer_size, sv_bg, ps, log_base)
 		SV *seq
         SV *matrices
         SV *thresholds
@@ -255,6 +255,8 @@ _search(seq, matrices, thresholds, algorithm, q, bgtype, combine, count_log_odds
         bool threshold_from_p
         int buffer_size
         SV *sv_bg
+        double ps
+        double log_base
     INIT:
     	int seq_length = call_length(seq);
     	alphabet_type type = call_alphabet(seq);
@@ -283,7 +285,7 @@ _search(seq, matrices, thresholds, algorithm, q, bgtype, combine, count_log_odds
     	    bg = flatBG(alphabet_size);
     	}
     	else {
-       		bg = bgFromSequence(seq_it, alphabet_size, 0.1);
+       		bg = bgFromSequence(seq_it, alphabet_size, ps);
     	}
 
 
@@ -294,7 +296,12 @@ _search(seq, matrices, thresholds, algorithm, q, bgtype, combine, count_log_odds
     	for(i = 0; i < num_matrices; i++) {
     		sv_matrix = *av_fetch((AV *) SvRV(matrices), i, 1);
     		if(count_log_odds)
-    			c_matrices.push_back(counts2LogOdds(atoScoreMatrixSV(sv_matrix), bg, 0.1));
+            {
+                if (log_base == 0)
+    			    c_matrices.push_back(counts2LogOdds(atoScoreMatrixSV(sv_matrix), bg, ps));
+                else
+                    c_matrices.push_back(counts2LogOdds(atoScoreMatrixSV(sv_matrix), bg, ps, log_base));
+            }
     		else
     			c_matrices.push_back(atoScoreMatrixSV(sv_matrix));
 

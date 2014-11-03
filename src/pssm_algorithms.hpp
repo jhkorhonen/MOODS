@@ -63,6 +63,7 @@ charArray readAZ(std::basic_istream<char> &in);
 scoreMatrix readMatrix(std::basic_istream<char> &in);
 scoreMatrix reverseComplement(scoreMatrix &mat);
 scoreMatrix counts2LogOdds(const scoreMatrix &mat, const doubleArray &bg, const double ps);
+scoreMatrix counts2LogOdds(const scoreMatrix &mat, const doubleArray &bg, const double ps, const double log_base);
 score_t tresholdFromP(const scoreMatrix &mat, const doubleArray &bg, const double &p);
 score_t maxScore(const scoreMatrix &mat);
 doubleArray expectedDifferences(const scoreMatrix &mat, const doubleArray &bg);
