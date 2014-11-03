@@ -85,6 +85,8 @@ int main(int argc, char **argv)
     int algorithm = 5;
     int q = 7;
     double tol;
+    double pseudocount = 1;
+    
     bool flat_bg = false;
     bool print_results = true;
     int buffer_size = 60000000;
@@ -220,7 +222,7 @@ int main(int argc, char **argv)
     if (flat_bg)
         bg = flatBG(4);
     else if(bg.empty())
-        bg = bgFromSequence(seq_it, 4, 0.1);
+        bg = bgFromSequence(seq_it, 4, pseudocount);
 
     cerr << "calculated background\n";
 
@@ -239,7 +241,7 @@ int main(int argc, char **argv)
         scoreMatrix matrix = readMatrix(ifs);
         if (matrix.size() == 4)
         {
-            matrices.push_back(  counts2LogOdds( matrix, bg, 0.1 )  );
+            matrices.push_back(  counts2LogOdds( matrix, bg, pseudocount )  );
             thresholds.push_back(tresholdFromP(matrices.back(), bg, tol));
             names.push_back(&(argv[i]));
             cerr << "loaded matrix " << argv[i] << "\n";

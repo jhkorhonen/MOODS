@@ -81,7 +81,7 @@ def count_log_odds(matrix, bg, ps, log_base=None):
                     a list of four floats.
                 ps
                     Multiplier for pseudocounts. If matrix is
-                    already a frequency matrix, you may want to
+                    a frequency matrix, you may want to
                     set this to zero.
              Optional:
                 log_base  
@@ -108,7 +108,7 @@ def flatbg(size = 4):
     return [(1.0/size) for i in range(size)]
 
 def search(sequence, matrices, thresholds,
-             bg=None,  convert_log_odds=True, threshold_from_p=True, both_strands=False, log_base=None, pseudocount=0.1,
+             bg=None,  convert_log_odds=True, threshold_from_p=True, both_strands=False, log_base=None, pseudocount=1,
              algorithm="lf", q=7, combine = True):
     '''
     Finds position weight matrix matches in DNA sequence. 
@@ -153,9 +153,9 @@ def search(sequence, matrices, thresholds,
                     if using convert_log_odds=True and threshold_from_p=False.
                     Defaults to natural logarithm if None is given.
                 pseudocount
-                    Pseudocount added to matrix counts in log-odds conversion
-                    and to sequence symbol counts when estimating the
-                    background from sequence. Default 0.1.
+                    Pseudocount used in log-odds conversion and added to
+                    sequence symbol counts when estimating the background
+                    from sequence. Default 1.
                 both_strands
                     Scans against reverse complement sequence in addition to
                     the input sequence. Hits on reverse complement are reported
