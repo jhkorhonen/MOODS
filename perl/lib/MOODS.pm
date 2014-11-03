@@ -76,7 +76,7 @@ sub search {
     my %args = @_;
     
     #handle compulsory parameters
-    if (not exists $args{-seq}) { die ("Sequence not spesified\n"); }
+    if (not exists $args{-seq}) { die ("Sequence not specified\n"); }
     if(exists $args{-matrices} && (exists $args{-thresholds} || $args{-threshold})) {
    		if((ref $args{-matrices} ne "ARRAY"))  { die("Matrices argument must be an array"); }
    		for my $matrix (@{$args{-matrices}}) {
@@ -103,7 +103,7 @@ sub search {
    		delete $args{-threshold};
    	}
    	else {
-   		die("Either -matrix or -matrices must be spesified");
+   		die("Either -matrix or -matrices must be specified");
    	}
     
     if(exists $args{-absolute_threshold} && $args{-absolute_threshold}) {
@@ -115,7 +115,7 @@ sub search {
     if(exists $args{-bg} && $args{-bg}) {
     	if((ref $args{-bg} ne "ARRAY") || scalar(@{$args{-bg}}) != 4)  { die("Invalid background"); }
     	$args{-bgtype} = 3;
-    	if(exists $args{-flatbg}) { die("You can't spesify both bg and flatbg params"); }
+    	if(exists $args{-flatbg}) { die("You can't specify both bg and flatbg params"); }
     }
     elsif(exists $args{-flatbg} && $args{-flatbg}) {
     	$args{-bgtype} = 1;
