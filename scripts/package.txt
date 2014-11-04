@@ -1,6 +1,6 @@
 COPYING.BIOPYTHON
 COPYING.GPLv3
-README
+readme.MD
 src/
     find_pssm_dna.cpp
     pssm_algorithms.cpp
@@ -11,17 +11,19 @@ src/
 examples/
     example1.pm
     example2.pm
-    example4.pm
+    example3.pm
     window_search.pm
     example1.py
     example2.py
+    example3a.py
+    example3b.py
     data/matrix/JASPAR_CORE_2008
     data/sequence/dnaACGT.txt
 python/
     MOODS/
         __init__.py
     cport.cc
-    README
+    readme.MD
     setup.py
 perl/
     MOODS.xs
@@ -33,4 +35,4 @@ perl/
     t/
         MOODS.t
     Makefile.PL
-    README
+    readme.MD
