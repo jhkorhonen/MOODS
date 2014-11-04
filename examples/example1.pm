@@ -9,10 +9,10 @@ use MOODS qw(search);
 use MOODS::Tools qw(printResults);
 
 #we need a position weight matrix
-my $matrix = [ [10,0,0],
-            [0,10,0],
-            [0,0,10],
-            [10,10,10]];
+my $matrix = [ [10,  0,  0],
+               [ 0, 10,  0],
+               [ 0,  0, 10],
+               [10, 10, 10]];
 
 #we need also a bioperl sequence object
 my $seq = Bio::Seq->new(-seq              => 'actgtggcgtcaacgtaggccaacgtggacccgtacgtaaacgaagaggggtagtc',
