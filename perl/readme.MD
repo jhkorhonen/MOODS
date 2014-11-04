@@ -1,22 +1,25 @@
 MOODS module for perl
-=======================
+=====================
 
-INSTALLATION
+Installation
+------------
 
 To install this module type the following:
 
-   perl Makefile.PL
-   make
-   make test
-   make install
+    perl Makefile.PL
+    make
+    make test
+    make install
 
-DEPENDENCIES
+Dependencies
+------------
 
-This module requires BioPerl package <www.bioperl.org> to be installed and working.
+This module requires BioPerl package (http://www.bioperl.org) to be installed and working.
 
-COPYRIGHT AND LICENCE
+Copyright and Licence
+---------------------
 
-Copyright (C) 2009 by Petri J Martinmaki, Janne Korhonen, Pasi Rastas
+Copyright (C) 2009 by Petri J Martinmäki, Janne Korhonen, Pasi Rastas
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by

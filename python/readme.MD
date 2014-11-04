@@ -1,18 +1,21 @@
 MOODS module for python
 =======================
 
-INSTALLATION
+Installation
+------------
 
 To install this module type the following:
-   python setup.py install
+
+    python setup.py install
 
 For more information about installing python modules see python documentation
 at <http://docs.python.org/install/index.html>
 
 
-COPYRIGHT AND LICENCE
+Copyright and Licence
+---------------------
 
-Copyright (C) 2009 by Petri J Martinmaki, Janne Korhonen, Pasi Rastas
+Copyright (C) 2009 by Petri J Martinmäki, Janne Korhonen, Pasi Rastas
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
