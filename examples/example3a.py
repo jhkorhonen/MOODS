@@ -13,7 +13,7 @@ matrix_names = [filename for filename in os.listdir(matrix_directory) if filenam
 # MOODS.load_matrix reads JASPAR formated matrix files
 matrices = [MOODS.load_matrix(matrix_directory + filename) for filename in matrix_names]
 
-# search with default scoring model
+# search with the default scoring model
 results = MOODS.search(seq, matrices, 0.0001, both_strands=True)
 
 # print the results for each matrix
