@@ -27,10 +27,9 @@ sub create_package {
 		}
 	}
 	close(FILE);
-	system("tar -C ../../ -cvvzf ".$package_name." ".$list) == 0 or die("creating package failed");
+	system("COPYFILE_DISABLE=1 tar --exclude *.DS_Store -C ../../ -cvvzf ".$package_name." ".$list) == 0 or die("creating package failed");
 }
 
 create_package("package.txt", "MOODS.tar.gz");
-create_package("package_small.txt", "MOODS_small.tar.gz");
 
 1;
