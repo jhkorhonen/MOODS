@@ -63,16 +63,16 @@ XSLoader::load('MOODS', $VERSION);
             -count_log_odds
                  If 1, assumes that the input matrices are frequency or
                  count matrices, and converts them to log-odds scoring
-                 matrices using function count_log_odds; otherwise, treat
-                 them as scoring matrices. Default 1.
+                 matrices; otherwise, treat them as scoring matrices.
+                 Default 1.
             -threshold_from_p
                  If 1, assumes that thresholds are p-values and computes
-                 the corresponding absolute threshold based on the matrix
-                 using function threshold_from_p; otherwise the threshold
-                 is used as a hard cut-off. Default 1.
+                 the corresponding absolute threshold based on the matrix;
+                 otherwise the threshold is used as a hard cut-off.
+                 Default 1.
             -log_base
                  Base for logarithms used in log-odds computations. Relevant
-                 if using convert_log_odds=True and threshold_from_p=False.
+                 if using -convert_log_odds => 1 and -threshold_from_p => 0.
                  Defaults to natural logarithm if parameter is not given.
             -pseudocount
                  Pseudocount used in log-odds conversion and added to
