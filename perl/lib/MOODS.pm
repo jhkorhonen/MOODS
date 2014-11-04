@@ -223,8 +223,7 @@ BioPerl documentation.
 
 =head1 AUTHOR
 
-Petri J Martinmaki
-Janne H Korhonen
+Petri J Martinmaki, Janne H Korhonen
 
 =head1 COPYRIGHT AND LICENSE
 
