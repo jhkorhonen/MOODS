@@ -1,6 +1,4 @@
 # Module for MOODS
-#
-# Copyright Petri Martinmäki
 
 =head1 NAME
 
@@ -225,11 +223,10 @@ BioPerl documentation.
 
 =head1 AUTHOR
 
-Petri J Martinmaki, E<lt>pmartinm@E<gt>
+Petri J Martinmaki
+Janne H Korhonen
 
 =head1 COPYRIGHT AND LICENSE
-
-Copyright (C) 2009 by Petri J Martinmaki
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
