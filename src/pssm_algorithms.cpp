@@ -237,13 +237,13 @@ scoreMatrix counts2LogOdds(const scoreMatrix &mat, const doubleArray &bg, const 
     for (int i = 0; i < n; ++i)
     {
 
-        int count = 0;
+        score_t count = 0;
         for (int j = 0; j < numA; ++j)
             count += mat[j][i] + ps*bg[j];
 
         for (int j = 0; j < numA; ++j)
         {
-            double f = (mat[j][i] + ps*bg[j])  / (count);
+            score_t f = (mat[j][i] + ps*bg[j])  / (count);
             ret[j][i] = log(f) - log(bg[j]);
         }
     }
@@ -262,13 +262,13 @@ scoreMatrix counts2LogOdds(const scoreMatrix &mat, const doubleArray &bg, const 
     for (int i = 0; i < n; ++i)
     {
 
-        int count = 0;
+        score_t count = 0;
         for (int j = 0; j < numA; ++j)
             count += mat[j][i] + ps*bg[j];
 
         for (int j = 0; j < numA; ++j)
         {
-            double f = (mat[j][i] + ps*bg[j])  / (count);
+            score_t f = (mat[j][i] + ps*bg[j])  / (count);
             ret[j][i] = (log(f) - log(bg[j])) / log(log_base);
         }
     }
