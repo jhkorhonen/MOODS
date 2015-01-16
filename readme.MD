@@ -1,4 +1,4 @@
-MOODS version 1.0.2
+MOODS version 1.0.2.1
 =======================
 
 MOODS is a suite of algorithms for matching position weight matrices (PWM) against DNA sequences. It features advanced matrix matching algorithms implemented in C++ that can be used to scan hundreds of matrices against chromosome-sized sequences in few seconds.
