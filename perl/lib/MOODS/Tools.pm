@@ -6,7 +6,7 @@ use strict;
 
 use Exporter;
 our @ISA = qw(Exporter);
-our @EXPORT_OK = qw(readMatrix printMatrix numResults printResults getResult);
+our @EXPORT_OK = qw(readMatrix printMatrix reverseComplement numResults printResults getResult);
 
 
 =head1 NAME
@@ -101,7 +101,7 @@ sub numResults {
   Title   : getResult
   Usage   : my @results = MOODS::search(..);
   			$num_results = numResults($results[0]);
-  			foreach $i (0..$num_results) {
+  			foreach $i (0..$num_results-1) {
   				my ($pos, $score) = getResult($results[0], $i); 
   			}
   Function: gets a position score pair from a result array
