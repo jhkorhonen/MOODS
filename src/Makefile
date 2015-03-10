@@ -4,6 +4,10 @@ OBJECT_FILES = pssm_algorithms.o find_pssm_dna.o
 
 all: find_pssm_dna libpssm.a
 
+test_hom: libpssm.a
+	g++ $(CXXFLAGS) -c test_hom.cpp -o test_hom.o
+	g++ test_hom.o -L. -lpssm -o test_hom
+
 find_pssm_dna: libpssm.a find_pssm_dna.o
 	g++ find_pssm_dna.o -L. -lpssm -o find_pssm_dna
 	
