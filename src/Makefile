@@ -21,4 +21,4 @@ pssm_algorithms.o: pssm_algorithms.cpp pssm_algorithms.hpp seq_buffer.h
 	g++ $(CXXFLAGS) -c pssm_algorithms.cpp -o pssm_algorithms.o
 
 clean:
-	rm -f  libpssm.a find_pssm_dna $(OBJECT_FILES)
+	rm -f  libpssm.a find_pssm_dna test_hom $(OBJECT_FILES)
