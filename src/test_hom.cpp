@@ -15,6 +15,23 @@ using std::cout;
 using std::cerr;
 using std::cout;
 
+// Struct for comparing matrix rows with sort()
+struct compareRows
+{
+    const doubleArray *goodness;
+    bool operator() (int i, int j)
+    {
+        return ( (*goodness)[i] > (*goodness)[j] );
+    }
+};
+
+struct OutputListElementMulti
+{
+    score_t score;
+    int matrix;
+    bool full;
+};
+
 
 // Transforms a weight matrix into a PSSM
 scoreMatrix freq2LogOddsHO(const scoreMatrix &mat, const doubleArray &bg)
@@ -47,25 +64,29 @@ scoreMatrix freq2LogOddsHO(const scoreMatrix &mat, const doubleArray &bg)
     return ret;
 }
 
-scoreArray prefix_scores(const scoreMatrix &mat, const int q){
+scoreArray prefix_scores(const scoreMatrix &mat, const int q, const int end){
+    // the "actual" strings are 0...(end-1)
+    // the corresponding indices of the matrix are 0...(end-q)
+    //
+    // 
+    // 012345678
+    // |--| <- end = 4, q = 2
+    // 00224466
+    //  11335577
     
-    const int m = mat[0].size(); // actual length - q + 1
     const int numA = 1 << (2*q); // 4**q
     const int numQ = 1 << (2*(q-1));
     const int maskQ = numQ - 1;
     
-    scoreArray p_scores(numQ, SCORE_MIN);
-    scoreArray ret(m, SCORE_MIN);
-
-    for (int i = 0; i < numA; ++i){
-        p_scores[i & maskQ] = std::max(mat[i][0], p_scores[i & maskQ]);
-    }
-    for (int i = 0; i < numQ; ++i){
-        ret[0] = std::max(p_scores[i], ret[0]);
-    }
-
+    scoreArray p_scores(numQ, 0);
     
-    for (int j = 1; j < m; ++j){
+    // we should have end >= q
+    // otherwise we assume that we want 0 as an aswer
+    if (end < q){
+        return p_scores; // all zeroes
+    }
+    
+    for (int j = 0; j < end-q; ++j){
         scoreArray p_scores_n(numQ, SCORE_MIN);
         
         for (int i = 0; i < numA; ++i){
@@ -73,38 +94,45 @@ scoreArray prefix_scores(const scoreMatrix &mat, const int q){
         }
         
         p_scores = p_scores_n;
-        
-        for (int i = 0; i < numQ; ++i){
-            ret[j] = std::max(p_scores[i], ret[j]);
-        }
-
     }
     
-    return ret;
-    
+    return p_scores;
 }
 
-// scoreArray prefix_scores(const scoreMatrix &mat, const int q){
-//     const int m = mat[0].size(); // actual length - q + 1
-//
-//     return max_score_dp( mat, q, 0, m);
-// }
-
-// scoreArray suffix_scores(const scoreMatrix &mat, const int q){
-//     const int m = mat[0].size(); // actual length - q + 1
-//
-//     scoreMatrix reverse();
-//
-//     for (auto it = mat.begin(); it != mat.end(); ++it){
-//         scoreMatrix col(*it);
-//         std::reverse(col.begin(),col.end());
-//
-//         reverse.push_back(col),
-//     }
-//
-//
-//     return max_score_dp(reverse, q, 0, m);
-// }
+scoreArray suffix_scores(const scoreMatrix &mat, const int q, const int start){
+    // the "actual" strings are start...(m+q-1)
+    // the corresponding indices of the matrix are start...(m-1)
+    //
+    // 
+    // 012345678
+    //      |--| <- start = 5, q = 2
+    // 00224466
+    //  11335577
+    
+    const int numA = 1 << (2*q); // 4**q
+    const int numQ = 1 << (2*(q-1));
+    const int maskQ = numQ - 1;
+    
+    const int m = mat[0].size();
+    
+    scoreArray s_scores(numQ, 0);
+    
+    if (start > m-1){
+        return s_scores; // all zeroes
+    }
+    
+    for (int j = m-1; j >= start; --j){
+        scoreArray s_scores_n(numQ, SCORE_MIN);
+        
+        for (int i = 0; i < numA; ++i){
+            s_scores_n[i >> 2] = std::max(mat[i][j] + s_scores[i & maskQ], s_scores_n[i >> 2]);
+        }
+        
+        s_scores = s_scores_n;
+    }
+    
+    return s_scores;
+}
 
 scoreArray window_scores(const scoreMatrix &mat, const int q, const int l){
     const int m = mat[0].size(); // actual length - q + 1
@@ -114,13 +142,13 @@ scoreArray window_scores(const scoreMatrix &mat, const int q, const int l){
     
     scoreArray ret(m - l + 1, SCORE_MIN);
     
-    for (int start = 0; start < m - l + 1; ++start){
+    for (int start = 0; start < m - l-1; ++start){
         scoreArray p_scores(numQ, SCORE_MIN);
         for (int i = 0; i < numA; ++i){
             p_scores[i & maskQ] = std::max(mat[i][start], p_scores[i & maskQ]);
         }
         
-        for (int j = start + 1; j < start + l - q; ++j){
+        for (int j = start + 1; j < start + l - q - 2; ++j){
             scoreArray p_scores_n(numQ, SCORE_MIN);
         
             for (int i = 0; i < numA; ++i){
@@ -155,15 +183,6 @@ scoreMatrix expected_scores(const std::vector<scoreMatrix> &matrices, const doub
 
         for (int i = 0; i < m[k]; ++i)
         {
-            // score_t max = SCORE_MIN;
-            // for (int j = 0; j < numA; ++j)
-            // {
-            //     if (max < mat[j][i])
-            //         max = mat[j][i];
-            // }
-            //
-            // expd[i] = max;
-
             for (int j = 0; j < numA; ++j)
             {
                 expd[i] = bg[j ^ 3] * bg[(j >> 2) & 3]  * matrices[k][j][i];
@@ -175,9 +194,28 @@ scoreMatrix expected_scores(const std::vector<scoreMatrix> &matrices, const doub
     return goodnesses;
 }
 
+scoreMatrix expected_losses(const std::vector<scoreMatrix> &matrices, const doubleArray &bg, const int numA){
+
+    scoreMatrix exp_loss = expected_scores(matrices, bg, numA); // get the expected scores
+    
+    for (int k = 0; k < (int)matrices.size(); ++k){
+        for (int i = 0; i < (int)exp_loss[k].size(); ++i){
+            score_t max = SCORE_MIN;
+            for (int j = 0; j < numA; ++j)
+            {
+                max = std::max(max, matrices[k][j][i]);
+            }
+            
+            exp_loss[k][i] = max - exp_loss[k][i];
+        }
+    }
+    
+    return exp_loss;
+}
+
 // Multimatrix LFA for DNA
 // vector<matchArray> mmlf_DNA_HO(const int q, const charArray &s, const vector<scoreMatrix> &matrices, const doubleArray &bg, const scoreArray &tol)
-void mmlf_DNA_HO(const int q, const charArray &s, const std::vector<scoreMatrix> &matrices, const doubleArray &bg, const scoreArray &tol)
+std::vector<matchArray> mmlf_DNA_HO(const int q, const charArray &s, const std::vector<scoreMatrix> &matrices, const doubleArray &bg, const scoreArray &tol)
 {
 
     const int BITSHIFT = 2;
@@ -234,248 +272,263 @@ void mmlf_DNA_HO(const int q, const charArray &s, const std::vector<scoreMatrix>
         }
     }
     
-    // --- fix everything below this line ---
+    // Pre- and post-window scores
+    scoreMatrix P;
+    P.reserve(matrices.size());
+    for (int k = 0; k < (int)matrices.size(); ++k)
+    {
+        scoreArray B = prefix_scores(matrices[k],2,window_positions[k]+2);
+        P.push_back(B);
+    }
     
-    //     // Calculate lookahead scores for all matrices
-    //     scoreMatrix T;
-    //     T.reserve(matrices.size());
+    scoreMatrix S;
+    S.reserve(matrices.size());
+    for (int k = 0; k < (int)matrices.size(); ++k)
+    {
+        scoreArray B = suffix_scores(matrices[k],2,window_positions[k]+q-2);
+        S.push_back(B);
+    }
+    
+    // Arrange matrix indices not in window by expected loss, for use in scanning
+    intMatrix orders;
+    orders.reserve(matrices.size());
+    scoreMatrix L;
+    L.reserve(matrices.size());
+    
+    scoreMatrix exp_losses = expected_losses(matrices,bg,numA);
+
+    for (unsigned short k = 0; k < (int) matrices.size(); ++k)
+    {
+        if (q >= m[k]+1)
+        {
+            intArray temp1;
+            orders.push_back(temp1);
+            scoreArray temp2;
+            L.push_back(temp2);
+        }
+        else
+        {
+            for (int i = 0; i < exp_losses[k].size(); ++i){
+                cerr << i << " " << exp_losses[k][i] << "\n";
+            }
+            intArray order(m[k]-q+1, 0);
+            for (int i = 0; i < window_positions[k]; ++i)
+            {   
+                order[i] = i;
+            }
+            for (int i = window_positions[k]+q-1; i < m[k]; ++i)
+            {
+                order[i-q+1] = i;
+            }
+
+            compareRows comp;
+            comp.goodness = &(exp_losses[k]);
+
+            sort(order.begin(), order.end(), comp);
+
+            orders.push_back(order);
+            
+            for (int i = 0; i < order.size();++i){
+                cerr << order[i] << " ";
+            }
+            cerr << "\n";
+
+            scoreArray K(m[k]-q+1, 0);
+            for (int j = m[k]-q; j > 0; --j)
+            {
+                score_t max = INT_MIN;
+                for (unsigned int i = 0; i < numA; ++i)
+                {
+                    max = std::max(max,matrices[k][i][order[j]]);
+                }
+                K[j - 1] = K[j] + max;
+            }
+            L.push_back(K);
+        }
+    }
+    
     //
-    //     for (int k = 0; k < (int)matrices.size(); ++k)
-    //     {
-    //         scoreArray C(m[k],0);
-    //         for (int j = m[k] - 1; j > 0; --j) {
-    //             score_t max = SCORE_MIN;
-    //             for (unsigned int i = 0; i < numA; ++i) {
-    //                 if (max < matrices[k][i][j])
-    //                     max = matrices[k][i][j];
-    //             }
-    //             C[j - 1] = C[j] + max;
-    //         }
-    //         T.push_back(C);
-    //     }
-    //
-    //     // Pre-window scores
-    //     scoreArray P;
-    //     P.reserve(matrices.size());
-    //     for (int k = 0; k < (int)matrices.size(); ++k)
-    //     {
-    //         score_t B = 0;
-    //         for (int j = 0; j < window_positions[k]; ++j)
-    //         {
-    //             score_t max = SCORE_MIN;
-    //             for (unsigned int i = 0; i < numA; ++i) {
-    //                 if (max < matrices[k][i][j])
-    //                     max = matrices[k][i][j];
-    //             }
-    //             B += max;
-    //         }
-    //         P.push_back(B);
-    //     }
-    //
-    //     // Arrange matrix indeces not in window by entropy, for use in scanning
-    //     intMatrix orders;
-    //     orders.reserve(matrices.size());
-    //     scoreMatrix L;
-    //     L.reserve(matrices.size());
-    //
-    //     for (unsigned short k = 0; k < (int) matrices.size(); ++k)
-    //     {
-    //         if (q >= m[k])
-    //         {
-    //             intArray temp1;
-    //             orders.push_back(temp1);
-    //             scoreArray temp2;
-    //             L.push_back(temp2);
-    //         }
-    //         else
-    //         {
-    //             intArray order(m[k]-q, 0);
-    //             for (int i = 0; i < window_positions[k]; ++i)
-    //             {
-    //                 order[i] = i;
-    //             }
-    //             for (int i = window_positions[k]+q; i < m[k]; ++i)
-    //             {
-    //                 order[i-q] = i;
-    //             }
-    //
-    //             compareRows comp;
-    //             comp.goodness = &(goodnesses[k]);
-    //
-    //             sort(order.begin(), order.end(), comp);
-    //
-    //             orders.push_back(order);
-    //
-    //             scoreArray K(m[k]-q, 0);
-    //             for (int j = m[k]-q-1; j > 0; --j)
-    //             {
-    //                 score_t max = INT_MIN;
-    //                 for (unsigned int i = 0; i < numA; ++i)
-    //                 {
-    //                     if (max < matrices[k][i][order[j]])
-    //                         max = matrices[k][i][order[j]];
-    //                 }
-    //                 K[j - 1] = K[j] + max;
-    //             }
-    //             L.push_back(K);
-    //         }
-    //     }
-    //
-    //     const bits_t size = 1 << (BITSHIFT * q); // numA^q
-    //     const bits_t BITAND = size - 1;
-    //
-    //
-    //     vector<vector< OutputListElementMulti> > output(size);
-    //
-    // {
-    //     bitArray sA(q,0);
-    //     while (true)
-    //     {
-    //         bits_t code = 0;
-    //         for (int j = 0; j < q; ++j)
-    //         {
-    //             code = (code << BITSHIFT) | sA[j];
-    //         }
-    //
-    //         for (unsigned int k = 0; k < matrices.size(); ++k )
-    //         {
-    //                 if (m[k] <= q)
-    //                 {
-    //                     score_t score = 0;
-    //                     for (int i = 0; i < m[k]; ++i)
-    //                     {
-    //                         score += matrices[k][sA[i]][i];
-    //                     }
-    //                     if (score >= tol[k])
-    //                     {
-    //                         OutputListElementMulti temp;
-    //                         temp.full = true;
-    //                         temp.matrix = k;
-    //                         temp.score = score;
-    //                         output[code].push_back(temp);
-    //                     }
-    //                 }
-    //                 else
-    //                 {
-    //                     score_t score = 0;
-    //                     for (int i = 0; i < q; ++i)
-    //                     {
-    //                         score += matrices[k][sA[i]][i + window_positions[k]];
-    //                     }
-    //                     if (score + P[k] + T[k][q + window_positions[k]-1] >= tol[k])
-    //                     {
-    //                         OutputListElementMulti temp;
-    //                         temp.full = false;
-    //                         temp.matrix = k;
-    //                         temp.score = score;
-    //                         output[code].push_back(temp);
-    //                     }
-    //                 }
-    //             }
-    //
-    //         int pos = 0;
-    //         while (pos < q)
-    //         {
-    //             if (sA[pos] < numA - 1)
-    //             {
-    //                 ++sA[pos];
-    //                 break;
-    //             }
-    //             else
-    //             {
-    //                 sA[pos] = 0;
-    //                 ++pos;
-    //             }
-    //         }
-    //
-    //         if (pos == q)
-    //             break;
-    //     }
-    // }
+    const bits_t size = 1 << (BITSHIFT * q); // 4^q -- the actual size of the window
+    const bits_t BITAND = size - 1;
+    
+    std::vector<std::vector< OutputListElementMulti> > output(size);
+
+    {
+        bitArray sA(q,0);
+        while (true)
+        {
+            bits_t code = 0;
+            for (int j = 0; j < q; ++j)
+            {
+                code = (code << BITSHIFT) | sA[j];
+            }
+
+            for (unsigned int k = 0; k < matrices.size(); ++k )
+            {
+                if (m[k] + 1 <= q)
+                {
+                    score_t score = 0;
+                    for (int i = 0; i < m[k]; ++i)
+                    {
+                        score += matrices[k][(sA[i] << 2) | sA[i+1]][i];
+                    }
+                    if (score >= tol[k])
+                    {
+                        OutputListElementMulti temp;
+                        temp.full = true;
+                        temp.matrix = k;
+                        temp.score = score;
+                        output[code].push_back(temp);
+                    }
+                }
+                else
+                {
+                    score_t score = 0;
+                    for (int i = 0; i < q-1; ++i)
+                    {
+                        score += matrices[k][(sA[i] << 2) | sA[i+1]][i + window_positions[k]];
+                    }
+                    if (score + P[k][sA[0]] + S[k][sA[q-1]] >= tol[k])
+                    {
+                        OutputListElementMulti temp;
+                        temp.full = false;
+                        temp.matrix = k;
+                        temp.score = score;
+                        output[code].push_back(temp);
+                    }
+                }
+            }
+
+            int pos = 0;
+            while (pos < q)
+            {
+                if (sA[pos] < numA - 1)
+                {
+                    ++sA[pos];
+                    break;
+                }
+                else
+                {
+                    sA[pos] = 0;
+                    ++pos;
+                }
+            }
+
+            if (pos == q)
+                break;
+        }
+    }
     //
     // // Scanning
     //
-    // vector<matchArray> ret;
-    //     for (unsigned int i = 0; i < matrices.size(); ++i)
-    //     {
-    //         matchArray temp;
-    //         ret.push_back(temp);
-    //     }
-    //
-    // matchData hit;
-    //
-    //     score_t score;
-    //     position_t k;
-    //     position_t limit;
-    //     position_t ii;
-    //     score_t tolerance;
-    //     intArray::iterator z;
-    //
-    //     bits_t code = 0;
-    //     for (position_t ii = 0; ii < q - 1; ++ii)
-    //         code = (code << BITSHIFT) + s[ii];
-    //
-    //
-    //     for (position_t i = 0; i < n - q + 1; ++i)
-    //     {
-    //         code = ((code << BITSHIFT) + s[i + q - 1]) & BITAND;
-    //
-    //         if (!output[code].empty())
-    //         {
-    //             for (vector<OutputListElementMulti>::iterator y = output[code].begin(); y != output[code].end(); ++y)
-    //             {
-    //                 if (y->full) // A Hit for a matrix of length <= q
-    //                 {
-    //                     hit.position = i;
-    //                     hit.score = y->score;
-    //                     ret[y->matrix].push_back(hit);
-    //                     continue;
-    //                 }
-    //                 if (i - window_positions[y->matrix] >= 0 && i + m[y->matrix] - window_positions[y->matrix] <= n) // A possible hit for a longer matrix. Don't check if matrix can't be positioned entirely on the sequence here
-    //                 {
-    //                     score = y->score;
-    //                     k = y->matrix;
-    //                     limit = m[k] - q;
-    //                     ii = i - window_positions[k];
-    //                     tolerance = tol[k];
-    //                     z = orders[k].begin();
-    //                     for (int j = 0; j < limit  ;++j)
-    //                     {
-    //                         score += matrices[k][s[ii+(*z)]][*z];
-    //                         if (score + L[k][j] < tolerance)
-    //                             break;
-    //                         ++z;
-    //                     }
-    //                     if (score >= tolerance){
-    //                     hit.position = i - window_positions[k];
-    //                     hit.score = score;
-    //                     ret[k].push_back(hit);
-    //                 }
-    //                 }
-    //             }
-    //         }
-    //     }
-    //
-    // for (position_t i = n - q + 1; i < n; ++i) // possible hits for matrices shorter than q near the end of sequence
-    // {
-    //     code = (code << BITSHIFT) & BITAND; // dummy character to the end of code
-    //
-    //     if (!output[code].empty())
-    //         {
-    //
-    //         for (vector<OutputListElementMulti>::iterator y = output[code].begin(); y != output[code].end(); ++y)
-    //             {
-    //                 if (y->full && m[y->matrix] < n - i + 1) // only sufficiently short hits are considered
-    //                 {
-    //                     hit.position = i;
-    //                     hit.score = y->score;
-    //                     ret[y->matrix].push_back(hit);
-    //                 }
-    //             }
-    //     }
-    // }
-    //
-    // return ret;
+        
+    std::vector<matchArray> ret;
+        for (unsigned int i = 0; i < matrices.size(); ++i)
+        {
+            matchArray temp;
+            ret.push_back(temp);
+        }
+
+    matchData hit;
+
+    score_t score;
+    position_t k;
+    position_t limit;
+    position_t ii;
+    score_t tolerance;
+    intArray::iterator z;
+
+    bits_t code = 0;
+    for (position_t ii = 0; ii < q - 1; ++ii)
+        code = (code << BITSHIFT) + s[ii];
+
+
+    for (position_t i = 0; i < n - q + 1; ++i)
+    {
+        code = ((code << BITSHIFT) + s[i + q - 1]) & BITAND;
+
+        if (!output[code].empty())
+        {
+            for (auto y = output[code].begin(); y != output[code].end(); ++y)
+            {
+                if (y->full) // A Hit for a matrix of length <= q
+                {
+                    hit.position = i;
+                    hit.score = y->score;
+                    ret[y->matrix].push_back(hit);
+                    continue;
+                }
+                if (i - window_positions[y->matrix] >= 0 && i + m[y->matrix] + 1 - window_positions[y->matrix] <= n) // A possible hit for a longer matrix. Don't check if matrix can't be positioned entirely on the sequence here
+                {
+                    score = y->score;
+                    k = y->matrix;
+                    limit = m[k] - q + 1;
+                    ii = i - window_positions[k]; 
+                    tolerance = tol[k];
+                    z = orders[k].begin();
+                    for (int j = 0; j < limit  ;++j)
+                    {
+                        score += matrices[k][(s[ii+(*z)] << 2) | s[ii+(*z) + 1]][*z];
+                        // if (score + L[k][j] < tolerance)
+                        //     break;
+                        ++z;
+                    }
+                    if (score >= tolerance){
+                    hit.position = i - window_positions[k];
+                    hit.score = score;
+                    ret[k].push_back(hit);
+                }
+                }
+            }
+        }
+    }
+
+    for (position_t i = n - q + 1; i < n; ++i) // possible hits for matrices shorter than q near the end of sequence
+    {
+        code = (code << BITSHIFT) & BITAND; // dummy character to the end of code
+
+        if (!output[code].empty())
+            {
+
+            for (auto y = output[code].begin(); y != output[code].end(); ++y)
+                {
+                    if (y->full && m[y->matrix] + 1 < n - i + 1) // only sufficiently short hits are considered
+                    {
+                        hit.position = i;
+                        hit.score = y->score;
+                        ret[y->matrix].push_back(hit);
+                    }
+                }
+        }
+    }
+
+    return ret;
+}
+
+matchArray naive_HO(const charArray &s, const scoreMatrix &p, const score_t tol)
+{
+    const int m = p[0].size();
+    const position_t n = s.size();
+
+    matchArray ret;
+    matchData hit;
+
+    for (position_t i = 0; i <= n - m; ++i)
+    {
+        score_t score = 0;
+        for (int j = 0; j < m; ++j)
+        {
+            score += p[ (s[i + j] << 2) | s[i + j + 1] ][j];
+        }
+        if (score >= tol)
+        {
+            hit.position = i;
+            hit.score = score;
+            ret.push_back(hit);
+        }
+    }
+
+    return ret;
 }
 
 
@@ -540,6 +593,7 @@ int main(int argc, char **argv)
     }
 
     tol = atof(argv[optind]);
+    
     ++optind;
 
     std::ifstream ifs(argv[optind]);
@@ -583,8 +637,28 @@ int main(int argc, char **argv)
 
     total = clock();
     position_t total_results = 0;
+
+    cerr << "Naive algorithm\n";
+    for (unsigned int k = 0; k < matrices.size(); ++k){
+        cout << *(names[k]) << "\n";
+        matchArray results;
+        results = naive_HO(seq, matrices[k], thresholds[k]);
+        cerr << "Hits: " << results.size() << "\n";
+        printMatchArray(results);
+    }
     
-    mmlf_DNA_HO(q, seq, matrices, bg, thresholds);
+    
+    std::vector<matchArray> results;
+    results = mmlf_DNA_HO(q, seq, matrices, bg, thresholds);
+    
+    for (unsigned int k = 0; k < matrices.size(); ++k)
+    {
+        cerr << *(names[k]) << "\n";
+        cerr << "Hits: " << results[k].size() << "\n";
+        printMatchArray(results[k]);
+        cout << "\n";
+    }
+
 
         //     if(algorithm < 4)
         //     {
