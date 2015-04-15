@@ -535,7 +535,7 @@ matchArray naive_HO(const charArray &s, const scoreMatrix &p, const score_t tol)
 int main(int argc, char **argv)
 {
     int c;
-    int q = 4;
+    int q = 8;
     double tol;
     double pseudocount = 1;
     
@@ -646,7 +646,13 @@ int main(int argc, char **argv)
         cerr << "Hits: " << results.size() << "\n";
         printMatchArray(results);
     }
-    
+
+    total = clock() - total;
+ 
+    cerr << "Time: " << std::setprecision(5) << (double)total/((double)CLOCKS_PER_SEC) << "\n";
+
+    total = clock();
+
     
     std::vector<matchArray> results;
     results = mmlf_DNA_HO(q, seq, matrices, bg, thresholds);
@@ -658,6 +664,10 @@ int main(int argc, char **argv)
         printMatchArray(results[k]);
         cout << "\n";
     }
+    
+    total = clock() - total;
+    cerr << "Time: " << std::setprecision(5) << (double)total/((double)CLOCKS_PER_SEC) << "\n";
+
 
 
         //     if(algorithm < 4)
