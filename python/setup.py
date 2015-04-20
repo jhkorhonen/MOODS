@@ -1,14 +1,21 @@
+       #!/usr/bin/env python
+
+"""
+setup.py file for haplotyping_core
+"""
+
 from distutils.core import setup, Extension
 
 
-module1 = Extension('MOODS._cmodule',
-                    sources = ['cport.cc'],
-                    include_dirs=["../src"],
-                    library_dirs=["../src"],
-                    libraries=['pssm'])
+tools_mod = Extension('MOODS._tools',
+                           sources=['../core/tools_wrap.cxx', '../core/moods_tools.cpp'],
+                           include_dirs=["../core/"],
+                           extra_compile_args=['-march=native', '-O3', '-fPIC', '--std=c++0x'],
+                           )
 
 setup (name = 'MOODS',
-       version = '1.0.2.1',
+       version = '1.9',
        description = 'MOODS: Motif Occurrence Detection Suite',
-       packages = ['MOODS',],
-       ext_modules = [module1])
+       ext_modules = [tools_mod],
+       py_modules = ["MOODS.tools"],
+)
