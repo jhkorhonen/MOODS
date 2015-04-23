@@ -100,85 +100,87 @@ score_matrix log_odds(const score_matrix &mat, const vector<double> &bg, const d
 }
 
 // // Calculates a threshold for a scoring matrix from a given p value
-// score_t threshold_from_p(const score_matrix &mat, const vector<double> &bg, const double &p)
-// {
-//     // Approximate the scoring matrix with integer matrix
-//     // 'cos we calculate threshold with dynamic programming!
-//     int a = pssm.size();
-//     int n = pssm[0].size();
-//
-//
-//     vector<vector<int> > mat(a, vector<int>(n));
-//
-//     int maxT = 0;
-//     int minV = INT_MAX;
-//
-//     for (int i = 0; i < n; ++i)
-//     {
-//         for (int j = 0; j < a; ++j)
-//         {
-//             if (pssm[j][i] > 0.0){
-//                 mat[j][i] = (int) ( PVAL_DP_MULTIPLIER * pssm[j][i] + 0.5 );
-//             }
-//             else {
-//                 mat[j][i] = (int) ( PVAL_DP_MULTIPLIER * pssm[j][i] - 0.5 );
-//             }
-//         }
-//     }
-//
-//     for (int i = 0; i < n; ++i)
-//     {
-//         int max = mat[0][i];
-//         int min = max;
-//         for (int j = 1; j < numA; ++j)
-//         {
-//             int v = mat[j][i];
-//             if (max < v)
-//                 max = v;
-//             else if (min > v)
-//                 min = v;
-//         }
-//         maxT += max;
-//         if (minV > min)
-//             minV = min;
-//     }
-//
-//     int R = maxT - n * minV;
-//
-//     doubleArray table0(R + 1, 0.0);
-//     doubleArray table1(R + 1, 0.0);
-//
-//     for (int j = 0; j < numA; ++j)
-//         table0[mat[j][0] - minV] += bg[j];
-//
-//     for (int i = 1; i < n; ++i)
-//     {
-//         for (int j = 0; j < numA; ++j)
-//         {
-//             int s = mat[j][i] - minV;
-//             for (int r = s; r <= R; ++r)
-//                 table1[r] += bg[j] * table0[r - s];
-//         }
-//         for (int r = 0; r <= R; ++r)
-//         {
-//             table0[r] = table1[r];
-//             table1[r] = 0.0;
-//         }
-//     }
-//
-//     double sum = 0.0;
-//
-//     for (int r = R; r >= 0; --r)
-//     {
-//         sum += table0[r];
-//         if (sum > p)
-//         {
-//             return (score_t) ((r + n * minV + 1) / PVAL_DP_MULTIPLIER);
-//         }
-//     }
-//
-//     return (score_t) ((n * minV) / PVAL_DP_MULTIPLIER);
-// }
+double threshold_from_p(const score_matrix &pssm, const vector<double> &bg, const double &p)
+{
+    const double PVAL_DP_MULTIPLIER = 1000.0;
+    
+    // Approximate the scoring matrix with integer matrix
+    // 'cos we calculate threshold with dynamic programming!
+    unsigned int a = pssm.size();
+    unsigned int n = pssm[0].size();
+
+
+    vector<vector<int> > mat(a, vector<int>(n));
+
+    int maxT = 0;
+    int minV = INT_MAX;
+
+    for (int i = 0; i < n; ++i)
+    {
+        for (int j = 0; j < a; ++j)
+        {
+            if (pssm[j][i] > 0.0){
+                mat[j][i] = (int) ( PVAL_DP_MULTIPLIER * pssm[j][i] + 0.5 );
+            }
+            else {
+                mat[j][i] = (int) ( PVAL_DP_MULTIPLIER * pssm[j][i] - 0.5 );
+            }
+        }
+    }
+
+    for (int i = 0; i < n; ++i)
+    {
+        int max = mat[0][i];
+        int min = max;
+        for (int j = 1; j < a; ++j)
+        {
+            int v = mat[j][i];
+            if (max < v)
+                max = v;
+            else if (min > v)
+                min = v;
+        }
+        maxT += max;
+        if (minV > min)
+            minV = min;
+    }
+
+    int R = maxT - n * minV;
+
+    vector<double> table0(R + 1, 0.0);
+    vector<double> table1(R + 1, 0.0);
+
+    for (int j = 0; j < a; ++j)
+        table0[mat[j][0] - minV] += bg[j];
+
+    for (int i = 1; i < n; ++i)
+    {
+        for (int j = 0; j < a; ++j)
+        {
+            int s = mat[j][i] - minV;
+            for (int r = s; r <= R; ++r)
+                table1[r] += bg[j] * table0[r - s];
+        }
+        for (int r = 0; r <= R; ++r)
+        {
+            table0[r] = table1[r];
+            table1[r] = 0.0;
+        }
+    }
+
+    double sum = 0.0;
+
+    for (int r = R; r >= 0; --r)
+    {
+        sum += table0[r];
+        if (sum > p)
+        {
+            return (double) ((r + n * minV + 1) / PVAL_DP_MULTIPLIER);
+        }
+    }
+
+    return (double) ((n * minV) / PVAL_DP_MULTIPLIER);
+}
 
 
 // Calculates maximum possible score for a PSSM

@@ -18,6 +18,9 @@ score_matrix reverse_complement(const score_matrix &mat);
 score_matrix log_odds(const score_matrix &mat, const std::vector<double> &bg, const double ps);
 score_matrix log_odds(const score_matrix &mat, const std::vector<double> &bg, const double ps, const double log_base);
 
+// threshold from p
+double threshold_from_p(const score_matrix &mat, const std::vector<double> &bg, const double &p);
+
 // min / max
 double max_score(const score_matrix &mat);
 double min_score(const score_matrix &mat);
