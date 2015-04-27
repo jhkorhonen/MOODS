@@ -7,10 +7,6 @@
 // License.
 
 
-#include <vector>
-#include <cmath>
-#include <limits>
-
 #include "moods.h"
 #include "moods_tools.h"
 
