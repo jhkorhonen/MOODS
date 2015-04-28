@@ -1,8 +1,5 @@
-
-#include <vector>
-#include <iostream>
-#include <cfloat>
-#include <stdint.h>
+#ifndef MOODS_TOOLS_H
+#define MOODS_TOOLS_H
 
 #include "moods.h"
 
@@ -23,3 +20,5 @@ namespace MOODS { namespace tools{
     double max_score(const score_matrix &mat);
     double min_score(const score_matrix &mat);
 }}
+
+#endif
