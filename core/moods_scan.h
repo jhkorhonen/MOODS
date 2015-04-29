@@ -12,6 +12,12 @@ namespace MOODS { namespace scan{
         bool full;
     };
     
+    struct match
+    {
+        position_t pos;
+        double score;
+    };
+    
 
     class Scanner {
         std::vector<Motif> motifs;
@@ -21,6 +27,7 @@ namespace MOODS { namespace scan{
         unsigned int l;
     public:
         Scanner(const std::vector<score_matrix>& matrices, const std::vector<double> thresholds,  const std::vector<double> bg);
+        std::vector<std::vector<match> > scan(std::vector<unsigned char>& seq);
     };
     
     

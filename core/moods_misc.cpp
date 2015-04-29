@@ -4,7 +4,7 @@
 #include "moods_alphabet.h"
 
 
-namespace MOODS { namespace alphabet{
+namespace MOODS { namespace misc{
 
     // basically base-2 logarithm of a, rounded up
     unsigned int shift(unsigned int a)

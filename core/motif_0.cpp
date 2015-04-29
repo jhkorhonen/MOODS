@@ -155,32 +155,25 @@ Motif::Motif (const score_matrix& matrix, const vector<double>& bg, unsigned int
     lookahead_scores = lookahead_scores(mat, lookahead_order, l, m, a);
 }
 
-bool Motif::window_match(bits_t seq, bits_t shift)
+std:pair<bool, double> Motif::window_match(bits_t seq, bits_t shift)
 {
-    return window_score(seq, shift) + lookahead_scores[0] >= T;
-}
-
-double Motif::window_score(bits_t seq, bits_t shift)
-{
+    
     double score = 0;
     
     for (unsigned int i = 0; i < std:min(l,m); ++i)
     {
         score += mat[seq >> (shift * (l - i - 1))][l+i];
     }
-    return score;
+    return std::make_pair(score + lookahead_scores[0] >= T, score);
 }
 
 double Motif::check_hit(const vector<unsigned char>& seq, position_t window_match_pos, double score)
 {
-
-    // if (window_match_pos - wp + m >= n or window_match_pos < wp){
-    //     return -std::numeric_limits<double>::infinity(); // matrix does not fit on the sequence
-    // }
-    position_t ii = window_match_pos - wp;
     if (m <= l){
         return score; // matrix fits fully to the window, so window score is what we wanted...
     }
+       
+    position_t ii = window_match_pos - wp;
     
     for (unsigned int i = 0; i < m - l; ++i)
     {
