@@ -1,7 +1,7 @@
 
 
 #include "moods.h"
-#include "moods_alphabet.h"
+#include "moods_misc.h"
 
 
 namespace MOODS { namespace misc{
@@ -14,7 +14,7 @@ namespace MOODS { namespace misc{
         
         while (b < a){
             s += 1;
-            b =<< 1;
+            b = b << 1;
         }
         return s;
     }
@@ -23,7 +23,7 @@ namespace MOODS { namespace misc{
         bits_t b = 1;
         
         while (b < a){
-            b =<< 1;
+            b = b << 1;
         }
         return b-1;
     }
