@@ -8,14 +8,14 @@ from distutils.core import setup, Extension
 
 
 tools_mod = Extension('MOODS._tools',
-                           sources=['../core/tools_wrap.cxx', '../core/moods_tools.cpp'],
-                           include_dirs=["../core/"],
+                           sources=['core/tools_wrap.cxx', 'core/moods_tools.cpp'],
+                           include_dirs=["core/"],
                            extra_compile_args=['-march=native', '-O3', '-fPIC', '--std=c++0x'],
                            )
                            
 misc_mod = Extension('MOODS._misc',
                            sources=['../core/misc_wrap.cxx', '../core/moods_misc.cpp'],
-                           include_dirs=["../core/"],
+                           include_dirs=["core/"],
                            extra_compile_args=['-march=native', '-O3', '-fPIC', '--std=c++0x'],
                            )
 

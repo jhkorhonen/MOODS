@@ -11,6 +11,7 @@
 #include "moods_tools.h"
 
 using std::vector;
+using std::size_t;
 
 namespace MOODS { namespace tools{
 
@@ -22,14 +23,36 @@ vector<double> flat_bg(const unsigned int alphabet_size)
     return bg;
 }
 
-// Calculates the actual background distribution from the sequence
-vector<double> bg_from_sequence(const vector<unsigned char> &seq, const int alphabet_size, const double ps)
+// Calculates the actual background distribution from a DNA sequence
+vector<double> bg_from_sequence_dna(const std::string &seq, const double ps)
 {
+    unsigned int alphabet_size = 4;
     vector<double> bg(alphabet_size);
-    vector<unsigned int> counts(alphabet_size, 0);
-
-    for (unsigned int i = 0; i < seq.size(); ++i){
-        ++counts[seq[i]];
+    vector<unsigned int> counts(4, 0);
+    
+    char c;
+    char value;
+    
+    for (size_t i = 0; i < seq.size(); ++i){
+        c = seq[i];
+        
+        switch (c)
+        {
+            case 'a':
+            case 'A': value = 0; break;
+            case 'c':
+            case 'C': value = 1; break;
+            case 'g':
+            case 'G': value = 2; break;
+            case 't':
+            case 'T': value = 3; break;
+            default: value = -1; break;
+        }
+        if (value >= 0)
+        {
+            counts[value] += 1;
+        }
+        
     }
     for (unsigned int j = 0; j < alphabet_size; ++j){
         bg[j] = (((double)counts[j] + ps)/ ((double)seq.size() + alphabet_size * ps));
@@ -40,13 +63,13 @@ vector<double> bg_from_sequence(const vector<unsigned char> &seq, const int alph
 
 score_matrix reverse_complement(const score_matrix &mat)
 {
-    unsigned int a = mat.size();
-    unsigned int n = mat[0].size();
+    size_t a = mat.size();
+    size_t n = mat[0].size();
 
     score_matrix ret(a, vector<double>(n));
 
-    for(unsigned int i = 0; i < a; i++) {
-        for (unsigned int j = 0; j < n; j++) {
+    for(size_t i = 0; i < a; i++) {
+        for (size_t j = 0; j < n; j++) {
             ret[i][j] = mat[a - i - 1][n - j - 1];
         }
     }
@@ -56,18 +79,18 @@ score_matrix reverse_complement(const score_matrix &mat)
 // Transforms a weight matrix into a PSSM
 score_matrix log_odds(const score_matrix &mat, const vector<double> &bg, const double ps)
 {
-    int a = mat.size();
-    int n = mat[0].size();
+    size_t a = mat.size();
+    size_t n = mat[0].size();
 
     score_matrix ret(a, vector<double>(n));
 
-    for (int i = 0; i < n; ++i)
+    for (size_t i = 0; i < n; ++i)
     {
         double column_sum = 0;
-        for (int j = 0; j < a; ++j){
+        for (size_t j = 0; j < a; ++j){
             column_sum += mat[j][i] + ps*bg[j];
         }
-        for (int j = 0; j < a; ++j) {
+        for (size_t j = 0; j < a; ++j) {
             ret[j][i] = log((mat[j][i] + ps*bg[j])/column_sum) - log(bg[j]);
         }
     }
@@ -77,18 +100,18 @@ score_matrix log_odds(const score_matrix &mat, const vector<double> &bg, const d
 // Transforms a weight matrix into a PSSM with non-natural logarithm
 score_matrix log_odds(const score_matrix &mat, const vector<double> &bg, const double ps, const double log_base)
 {
-    int a = mat.size();
-    int n = mat[0].size();
+    size_t a = mat.size();
+    size_t n = mat[0].size();
 
     score_matrix ret(a, vector<double>(n));
 
-    for (int i = 0; i < n; ++i)
+    for (size_t i = 0; i < n; ++i)
     {
         double column_sum = 0;
-        for (int j = 0; j < a; ++j){
+        for (size_t j = 0; j < a; ++j){
             column_sum += mat[j][i] + ps*bg[j];
         }
-        for (int j = 0; j < a; ++j) {
+        for (size_t j = 0; j < a; ++j) {
             ret[j][i] = (log((mat[j][i] + ps*bg[j])/column_sum) - log(bg[j])) / log(log_base);
         }
     }
@@ -102,8 +125,8 @@ double threshold_from_p(const score_matrix &pssm, const vector<double> &bg, cons
     
     // Approximate the scoring matrix with integer matrix
     // 'cos we calculate threshold with dynamic programming!
-    unsigned int a = pssm.size();
-    unsigned int n = pssm[0].size();
+    size_t a = pssm.size();
+    size_t n = pssm[0].size();
 
 
     vector<vector<int> > mat(a, vector<int>(n));
@@ -111,9 +134,9 @@ double threshold_from_p(const score_matrix &pssm, const vector<double> &bg, cons
     int maxT = 0;
     int minV = INT_MAX;
 
-    for (int i = 0; i < n; ++i)
+    for (size_t i = 0; i < n; ++i)
     {
-        for (int j = 0; j < a; ++j)
+        for (size_t j = 0; j < a; ++j)
         {
             if (pssm[j][i] > 0.0){
                 mat[j][i] = (int) ( PVAL_DP_MULTIPLIER * pssm[j][i] + 0.5 );
@@ -124,11 +147,11 @@ double threshold_from_p(const score_matrix &pssm, const vector<double> &bg, cons
         }
     }
 
-    for (int i = 0; i < n; ++i)
+    for (size_t i = 0; i < n; ++i)
     {
         int max = mat[0][i];
         int min = max;
-        for (int j = 1; j < a; ++j)
+        for (size_t j = 1; j < a; ++j)
         {
             int v = mat[j][i];
             if (max < v)
@@ -146,12 +169,12 @@ double threshold_from_p(const score_matrix &pssm, const vector<double> &bg, cons
     vector<double> table0(R + 1, 0.0);
     vector<double> table1(R + 1, 0.0);
 
-    for (int j = 0; j < a; ++j)
+    for (size_t j = 0; j < a; ++j)
         table0[mat[j][0] - minV] += bg[j];
 
-    for (int i = 1; i < n; ++i)
+    for (size_t i = 1; i < n; ++i)
     {
-        for (int j = 0; j < a; ++j)
+        for (size_t j = 0; j < a; ++j)
         {
             int s = mat[j][i] - minV;
             for (int r = s; r <= R; ++r)
@@ -182,14 +205,14 @@ double threshold_from_p(const score_matrix &pssm, const vector<double> &bg, cons
 // Calculates maximum possible score for a PSSM
 double max_score(const score_matrix &mat)
 {
-    int a = mat.size();
-    int n = mat[0].size();
+    size_t a = mat.size();
+    size_t n = mat[0].size();
 
     double ret = 0;
-    for (int i = 0; i < n; ++i)
+    for (size_t i = 0; i < n; ++i)
     {
         double max = -std::numeric_limits<double>::infinity();
-        for (int j = 0; j < a; ++j)
+        for (size_t j = 0; j < a; ++j)
         {
             max = std::max(mat[j][i], max);
         }
@@ -200,14 +223,14 @@ double max_score(const score_matrix &mat)
 
 double min_score(const score_matrix &mat)
 {
-    int a = mat.size();
-    int n = mat[0].size();
+    size_t a = mat.size();
+    size_t n = mat[0].size();
 
     double ret = 0;
-    for (int i = 0; i < n; ++i)
+    for (size_t i = 0; i < n; ++i)
     {
         double min = std::numeric_limits<double>::infinity();
-        for (int j = 0; j < a; ++j)
+        for (size_t j = 0; j < a; ++j)
         {
             min = std::min(mat[j][i], min);
         }

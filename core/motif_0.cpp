@@ -11,6 +11,7 @@
 #include "motif.h"
 
 using std::vector;
+using std::size_t;
 
 
 namespace MOODS { namespace scan{
@@ -167,15 +168,15 @@ std:pair<bool, double> Motif::window_match(bits_t seq, bits_t shift)
     return std::make_pair(score + lookahead_scores[0] >= T, score);
 }
 
-double Motif::check_hit(const vector<unsigned char>& seq, position_t window_match_pos, double score)
+double Motif::check_hit(const vector<unsigned char>& seq, size_t window_match_pos, double score)
 {
     if (m <= l){
         return score; // matrix fits fully to the window, so window score is what we wanted...
     }
        
-    position_t ii = window_match_pos - wp;
+    size_t ii = window_match_pos - wp;
     
-    for (unsigned int i = 0; i < m - l; ++i)
+    for (size_t i = 0; i < m - l; ++i)
     {
         if (score + lookahead_scores[i] < T)
         {

@@ -5,6 +5,7 @@
 #include "moods_tools.h"
 %}
 
+%include "std_string.i"
 %include "std_vector.i"
 namespace std {
     %template(vector_double) vector<double>;
