@@ -56,60 +56,98 @@ namespace MOODS { namespace scan{
         }
     }
     
-    std::vector<std::vector<match> > Scanner::scan(vector<unsigned char>& seq)
+    std::vector<std::vector<match> > Scanner::scan(misc::seq_internal& s)
     {
         const bits_t SHIFT = MOODS::misc::shift(a);
         const bits_t MASK = (1 << (SHIFT * l)) - 1;
         
-        // Initialise scanner state
-        bits_t code = 0;
-        for (size_t i = 0; i < l - 1; ++i)
-            code = (code << SHIFT) + seq[i];
-        
-        
         vector<vector<match> > ret(vector<match>(), motifs.size());
         
+        vector<unsigned char> seq = s.seq;
         
         // Scanning
-        for (size_t i = 0; i < n - l + 1; ++i)
-        {
-        	code = ((code << SHIFT) + seq[i + l - 1]) & MASK;
-
-            if (!window_hits[code].empty())
-            {
-                for (vector<OutputListElementMulti>::iterator y = window_hits[code].begin(); y != window_hits[code].end(); ++y)
-                {
-                    if (y->full) // A Hit for a matrix of length <= q
+        for (size_t seq_i = 0; seq_i < s.starts.size(); ++seq_i){
+            size_t start = s.starts[seq_i];
+            size_t end = s.ends[seq_i];
+            
+            
+            // sequence is very short
+            if (end - start < l){
+                bits_t code = 0;
+                for (size_t i = start; i < end; ++i)
+                    code = (code << SHIFT) + seq[i];
+                
+                for (size_t i = end - start; i < l - 1; ++ i){
+                    code = (code << SHIFT) & MASK;  // dummy character to the end of code
+                }
+                
+                
+                for (size_t i = start; i < end; ++i)
+                    if (!window_hits[code].empty())
                     {
-                        ret[y->matrix].emplace_back(i,y->score);
-                        continue;
-                    }
-                    if (i >= motifs[y->matrix].window_pos() && i + motifs[y->matrix].size() - motifs[y->matrix].window_pos() <= n) // A possible hit for a longer matrix. Don't check if matrix can't be positioned entirely on the sequence here
-                    {
-                        double score = motifs[y->matrix].check_hit(seq, i, y->score);
-                        if (score >= motifs[y->matrix].threshold()){
-                            ret[y->matrix].emplace_back(i,score);
+                        code = (code << SHIFT) & MASK;  // dummy character to the end of code
+                        
+                        for (vector<OutputListElementMulti>::iterator y = window_hits[code].begin(); y != window_hits[code].end(); ++y)
+                        {
+                            if (y->full && motif[y->matrix].size() <= end - i) // only sufficiently short hits are considered
+                            {
+                                ret[y->matrix].emplace_back(i,y->score);
+                            }
                         }
                     }
                 }
             }
-        }
-        
-        for (size_t i = n - l + 1; i < n; ++i) // possible hits for matrices shorter than l near the end of sequence
-        {
-        	code = (code << SHIFT) & MASK;  // dummy character to the end of code
-            
-            if (!window_hits[code].empty())
-            {
+            // sequence is long enough that we have at least one proper scanning step
+            else {
                 
-                for (vector<OutputListElementMulti>::iterator y = window_hits[code].begin(); y != window_hits[code].end(); ++y)
+                // Initialise scanner state
+                bits_t code = 0;
+                for (size_t i = start; i < start + l - 1; ++i)
+                    code = (code << SHIFT) + seq[i];
+            
+                // Actual scanning for the 'middle' of the sequence
+                for (size_t i = start; i < end - l + 1; ++i)
                 {
-                    if (y->full && motif[y->matrix].size() < n - i + 1) // only sufficiently short hits are considered
+                	code = ((code << SHIFT) + seq[i + l - 1]) & MASK;
+                
+                    if (!window_hits[code].empty())
                     {
-                        ret[y->matrix].emplace_back(i,y->score);
+                        for (auto y = window_hits[code].begin(); y != window_hits[code].end(); ++y)
+                        {
+                            if (y->full) // A Hit for a matrix of length <= q
+                            {
+                                ret[y->matrix].emplace_back(i,y->score);
+                                continue;
+                            }
+                            if (i - start >= motifs[y->matrix].window_pos() && i + motifs[y->matrix].size() - motifs[y->matrix].window_pos() <= end) // A possible hit for a longer matrix. Don't check if matrix can't be positioned entirely on the sequence here
+                            {
+                                double score = motifs[y->matrix].check_hit(seq, i, y->score);
+                                if (score >= motifs[y->matrix].threshold()){
+                                    ret[y->matrix].emplace_back(i,score);
+                                }
+                            }
+                        }
                     }
                 }
-            }
+            
+                // possible hits for matrices shorter than l near the end of current interval
+                for (size_t i = end - l + 1; i < end; ++i)
+                {
+                	code = (code << SHIFT) & MASK;  // dummy character to the end of code
+            
+                    if (!window_hits[code].empty())
+                    {
+                
+                        for (auto y = window_hits[code].begin(); y != window_hits[code].end(); ++y)
+                        {
+                            if (y->full && motifs[y->matrix].size() < end - i) // only sufficiently short hits are considered
+                            {
+                                ret[y->matrix].emplace_back(i,y->score);
+                            }
+                        }
+                    }
+                }
+            } 
         }
         
         return ret;

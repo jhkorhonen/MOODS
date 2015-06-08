@@ -3,6 +3,8 @@
 #include "moods.h"
 #include "moods_misc.h"
 
+using std::vector;
+using std::size_t;
 
 namespace MOODS { namespace misc{
 
@@ -27,5 +29,58 @@ namespace MOODS { namespace misc{
         }
         return b-1;
     }
+    
+    // maps ACGT string to the interal presentation 
+    seq_internal string_to_seq_dna(const std::string& s){
+        
+        // TODO: re-write this part
+        vector<char> m(4, size_of(char));
+        
+        m['a'] = 0;
+        m['A'] = 0;
+        
+        m['c'] = 1;
+        m['C'] = 1;
+        
+        m['g'] = 2;
+        m['G'] = 2;
+        
+        m['t'] = 3;
+        m['T'] = 3;
+        
+        
+        seq_internal ret = {
+            vector<unsigned char> (4, s.size()),
+            vector<size_t>(),
+            vector<size_t>()
+        }
+        
+        
+        // TODO: re-write this part also...
+        bool scannable = false; 
+        for (size_t i = 0; i < s.size(); ++i){
+            unsigned char c = m[s[i]];
+            
+            if (c < 4){
+                ret.seq[i] = c;
+                if (!scannable){
+                    scannable = true;
+                    ret.starts.push_back(i);
+                }
+            }
+            else {
+                if (scannable){
+                    scannable = false;
+                    ret.ends.push_back(i);
+                }
+            }
+        }
+        if (scannable){
+            ret.starts.push_back(s.size());
+        }
+        
+        return ret;
+    }
+    
 
 }}

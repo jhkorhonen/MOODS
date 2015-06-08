@@ -4,6 +4,7 @@
 #include "moods.h"
 #include "motif.h"
 #include "moods_scan.h"
+#include "moods_misc.h"
 
 namespace MOODS { namespace scan{
     
@@ -23,7 +24,7 @@ namespace MOODS { namespace scan{
         unsigned int l;
     public:
         Scanner(const std::vector<Motif>& matrices, unsigned int alphabet_size, unsigned int window_size);
-        std::vector<std::vector<match> > scan(std::vector<unsigned char>& seq);
+        std::vector<std::vector<match> > scan(misc::seq_internal& s);
     };
     
     
