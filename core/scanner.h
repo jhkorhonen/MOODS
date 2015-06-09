@@ -11,12 +11,11 @@ namespace MOODS { namespace scan{
     struct scanner_output
     {
         double score;
-        unsigned int matrix;
+        std::size_t matrix;
         bool full;
     };
     
-
-
+    
     class Scanner {
         std::vector<Motif> motifs;
         std::vector<std::vector<scanner_output> > window_hits;

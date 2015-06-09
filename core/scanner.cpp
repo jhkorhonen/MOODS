@@ -61,7 +61,7 @@ namespace MOODS { namespace scan{
         const bits_t SHIFT = MOODS::misc::shift(a);
         const bits_t MASK = (1 << (SHIFT * l)) - 1;
         
-        vector<vector<match> > ret(vector<match>(), motifs.size());
+        vector<vector<match> > ret(motifs.size(), vector<match>());
         
         vector<unsigned char> seq = s.seq;
         
@@ -87,19 +87,17 @@ namespace MOODS { namespace scan{
                     {
                         code = (code << SHIFT) & MASK;  // dummy character to the end of code
                         
-                        for (vector<OutputListElementMulti>::iterator y = window_hits[code].begin(); y != window_hits[code].end(); ++y)
+                        for (auto y = window_hits[code].begin(); y != window_hits[code].end(); ++y)
                         {
-                            if (y->full && motif[y->matrix].size() <= end - i) // only sufficiently short hits are considered
+                            if (y->full && motifs[y->matrix].size() <= end - i) // only sufficiently short hits are considered
                             {
-                                ret[y->matrix].emplace_back(i,y->score);
+                                ret[y->matrix].push_back(match{i,y->score});
                             }
                         }
                     }
                 }
-            }
             // sequence is long enough that we have at least one proper scanning step
             else {
-                
                 // Initialise scanner state
                 bits_t code = 0;
                 for (size_t i = start; i < start + l - 1; ++i)
@@ -116,14 +114,14 @@ namespace MOODS { namespace scan{
                         {
                             if (y->full) // A Hit for a matrix of length <= q
                             {
-                                ret[y->matrix].emplace_back(i,y->score);
+                                ret[y->matrix].push_back(match{i,y->score});
                                 continue;
                             }
                             if (i - start >= motifs[y->matrix].window_pos() && i + motifs[y->matrix].size() - motifs[y->matrix].window_pos() <= end) // A possible hit for a longer matrix. Don't check if matrix can't be positioned entirely on the sequence here
                             {
                                 double score = motifs[y->matrix].check_hit(seq, i, y->score);
                                 if (score >= motifs[y->matrix].threshold()){
-                                    ret[y->matrix].emplace_back(i,score);
+                                    ret[y->matrix].push_back(match{i,y->score});
                                 }
                             }
                         }
@@ -142,7 +140,7 @@ namespace MOODS { namespace scan{
                         {
                             if (y->full && motifs[y->matrix].size() < end - i) // only sufficiently short hits are considered
                             {
-                                ret[y->matrix].emplace_back(i,y->score);
+                                ret[y->matrix].push_back(match{i,y->score});
                             }
                         }
                     }

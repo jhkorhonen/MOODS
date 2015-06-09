@@ -1,5 +1,6 @@
 %module misc
 
+%include "std_string.i"
 %{
 #include <cstdint>
 #include "moods.h"

@@ -34,7 +34,7 @@ namespace MOODS { namespace misc{
     seq_internal string_to_seq_dna(const std::string& s){
         
         // TODO: re-write this part
-        vector<char> m(4, size_of(char));
+        vector<char> m(4, sizeof(char));
         
         m['a'] = 0;
         m['A'] = 0;
@@ -53,7 +53,7 @@ namespace MOODS { namespace misc{
             vector<unsigned char> (4, s.size()),
             vector<size_t>(),
             vector<size_t>()
-        }
+        };
         
         
         // TODO: re-write this part also...

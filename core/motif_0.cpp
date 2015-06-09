@@ -18,8 +18,8 @@ namespace MOODS { namespace scan{
 
 vector<double> expected_differences(const score_matrix &mat, const vector<double> &bg)
 {
-    int a = mat.size();
-    int m = mat[0].size();
+    size_t a = mat.size();
+    size_t m = mat[0].size();
     vector<double> ret(m);
 
     for (int i = 0; i < m; ++i)
@@ -81,7 +81,7 @@ struct row_comp
     }
 };
 
-vector<unsigned int> lookahead_order(const vector<double> &ed, unsigned int l, unsigned int window_pos, unsigned int m)
+vector<unsigned int> compute_lookahead_order(const vector<double> &ed, unsigned int l, unsigned int window_pos, unsigned int m)
 {
     if (l >= m)
     {
@@ -94,9 +94,9 @@ vector<unsigned int> lookahead_order(const vector<double> &ed, unsigned int l, u
         {
             order[i] = i;
         }
-        for (int i = window_positions[k]+q; i < m[k]; ++i)
+        for (int i = window_pos; i < m; ++i)
         {
-            order[i-q] = i;
+            order[i-l] = i;
         }
         
         row_comp comp;
@@ -108,7 +108,7 @@ vector<unsigned int> lookahead_order(const vector<double> &ed, unsigned int l, u
     }
 }
 
-vector<double> lookahead_scores(const vector<double> &mat, const vector<unsigned int> &order, unsigned int l, unsigned int m, unsigned int a)
+vector<double> compute_lookahead_scores(const score_matrix &mat, const vector<unsigned int> &order, unsigned int l, unsigned int m, unsigned int a)
 {
     if (l >= m)
     {
@@ -119,7 +119,7 @@ vector<double> lookahead_scores(const vector<double> &mat, const vector<unsigned
         std::vector<double> scores(m-l,0);
         
         double total = 0;
-        for (int i = m-l-1; j >= 0; --i)
+        for (int i = m-l-1; i >= 0; --i)
         {
             double max = -std::numeric_limits<double>::infinity();
             for (unsigned int j = 0; i < a; ++i)
@@ -142,26 +142,26 @@ Motif::Motif (const score_matrix& matrix, const vector<double>& bg, unsigned int
     m = mat[0].size();
     a = mat.size();
     
-    av = 1;
-    while (av < a)
-    {
-        av = av << 1;
-    }
+    // unsigned int av = 1;
+    // while (av < a)
+    // {
+    //     av = av << 1;
+    // }
     
     vector<double> ed = expected_differences(mat, bg);
     
     wp = window_position(ed, l, m);
     
-    lookahead_order = lookahead_order(ed, l, wp, m);
-    lookahead_scores = lookahead_scores(mat, lookahead_order, l, m, a);
+    lookahead_order = compute_lookahead_order(ed, l, wp, m);
+    lookahead_scores = compute_lookahead_scores(mat, lookahead_order, l, m, a);
 }
 
-std:pair<bool, double> Motif::window_match(bits_t seq, bits_t shift)
+std::pair<bool, double> Motif::window_match(bits_t seq, bits_t shift)
 {
     
     double score = 0;
     
-    for (unsigned int i = 0; i < std:min(l,m); ++i)
+    for (unsigned int i = 0; i < std::min(l,m); ++i)
     {
         score += mat[seq >> (shift * (l - i - 1))][l+i];
     }
