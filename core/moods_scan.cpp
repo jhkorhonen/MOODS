@@ -14,6 +14,7 @@ using std::size_t;
 namespace MOODS { namespace scan{
     
     vector< vector< scan::match> > scan_dna(const string& seq, const vector<score_matrix>& matrices, const vector<double>& bg, const vector<double> thresholds, unsigned int window_size )
+    // unsigned int scan_dna(const string& seq, const vector<score_matrix>& matrices, const vector<double>& bg, const vector<double> thresholds, unsigned int window_size )
     {
         
         vector<Motif> motifs;
@@ -31,6 +32,20 @@ namespace MOODS { namespace scan{
         std::cout << "Parsing sequence\n";
         
         misc::seq_internal s = misc::string_to_seq_dna(seq);
+        
+        for (size_t i = 0; i < s.seq.size(); ++i){
+            std::cout << (int)s.seq[i];
+        }
+        
+        std::cout << "\n";
+        
+        for (size_t i = 0; i < s.starts.size(); ++i){
+            std::cout << s.starts[i] << "\n";
+        }
+        
+        for (size_t i = 0; i < s.ends.size(); ++i){
+            std::cout << s.ends[i] << "\n";
+        }
         
         std::cout << "Scanning\n";
         

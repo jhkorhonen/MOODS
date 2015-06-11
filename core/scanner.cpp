@@ -9,6 +9,7 @@
 
 #include <utility>
 #include <tuple>
+#include <iostream>
 
 #include "moods.h"
 #include "scanner.h"
@@ -42,6 +43,7 @@ namespace MOODS { namespace scan{
         {
             for (size_t k = 0; k < motifs.size(); ++k)
             {
+                std::cout << code << " " << k << "\n";
                 double score;
                 bool match;
                 
@@ -50,20 +52,22 @@ namespace MOODS { namespace scan{
                 if (match)
                 {
                     scanner_output op = {score, k, motifs[k].size() <= l};
-                    window_hits[code].push_back(op);
+                    window_hits[code].emplace_back(op);
                 }
             }
         }
     }
     
-    std::vector<std::vector<match> > Scanner::scan(misc::seq_internal& s)
+    std::vector<std::vector<match> > Scanner::scan(const misc::seq_internal& s)
     {
         const bits_t SHIFT = MOODS::misc::shift(a);
         const bits_t MASK = (1 << (SHIFT * l)) - 1;
         
         vector<vector<match> > ret(motifs.size(), vector<match>());
         
-        vector<unsigned char> seq = s.seq;
+        const vector<unsigned char>& seq = s.seq;
+        
+        std::cout << s.starts.size() << " " << s.ends.size() << "\n";
         
         // Scanning
         for (size_t seq_i = 0; seq_i < s.starts.size(); ++seq_i){
@@ -73,6 +77,8 @@ namespace MOODS { namespace scan{
             
             // sequence is very short
             if (end - start < l){
+                std::cout << "short\n";
+                
                 bits_t code = 0;
                 for (size_t i = start; i < end; ++i)
                     code = (code << SHIFT) + seq[i];
@@ -98,15 +104,20 @@ namespace MOODS { namespace scan{
                 }
             // sequence is long enough that we have at least one proper scanning step
             else {
+                
+                std::cout << "long\n";
                 // Initialise scanner state
                 bits_t code = 0;
-                for (size_t i = start; i < start + l - 1; ++i)
+                for (size_t i = start; i < start + l - 1; ++i){
+                    std::cout << code << " " << i << "\n";
                     code = (code << SHIFT) + seq[i];
-            
+                }
+                
                 // Actual scanning for the 'middle' of the sequence
                 for (size_t i = start; i < end - l + 1; ++i)
                 {
-                	code = ((code << SHIFT) + seq[i + l - 1]) & MASK;
+                    code = ((code << SHIFT) + seq[i + l - 1]) & MASK;
+                    std::cout << code << " " << i << "\n";
                 
                     if (!window_hits[code].empty())
                     {
@@ -119,19 +130,23 @@ namespace MOODS { namespace scan{
                             }
                             if (i - start >= motifs[y->matrix].window_pos() && i + motifs[y->matrix].size() - motifs[y->matrix].window_pos() <= end) // A possible hit for a longer matrix. Don't check if matrix can't be positioned entirely on the sequence here
                             {
+                                std::cout << start << " " << i << " "  << motifs[y->matrix].window_pos() <<  "\n";
                                 double score = motifs[y->matrix].check_hit(seq, i, y->score);
                                 if (score >= motifs[y->matrix].threshold()){
-                                    ret[y->matrix].push_back(match{i,y->score});
+                                    ret[y->matrix].push_back(match{i - motifs[y->matrix].window_pos(),score});
                                 }
                             }
                         }
                     }
                 }
+                
+                std::cout << "tail\n";
             
                 // possible hits for matrices shorter than l near the end of current interval
                 for (size_t i = end - l + 1; i < end; ++i)
                 {
-                	code = (code << SHIFT) & MASK;  // dummy character to the end of code
+                    code = (code << SHIFT) & MASK;  // dummy character to the end of code
+                    std::cout << code << "\n";
             
                     if (!window_hits[code].empty())
                     {

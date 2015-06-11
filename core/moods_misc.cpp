@@ -2,6 +2,8 @@
 
 #include "moods.h"
 #include "moods_misc.h"
+#include <iostream>
+
 
 using std::vector;
 using std::size_t;
@@ -34,7 +36,7 @@ namespace MOODS { namespace misc{
     seq_internal string_to_seq_dna(const std::string& s){
         
         // TODO: re-write this part
-        vector<char> m(4, sizeof(char));
+        vector<unsigned char> m(127, 4);
         
         m['a'] = 0;
         m['A'] = 0;
@@ -48,36 +50,47 @@ namespace MOODS { namespace misc{
         m['t'] = 3;
         m['T'] = 3;
         
+        for (size_t i = 0; i < m.size(); ++i)
+            std::cout << (int)m[i];
+        std::cout << "\n";
         
-        seq_internal ret = {
-            vector<unsigned char> (4, s.size()),
-            vector<size_t>(),
-            vector<size_t>()
-        };
+        
+        vector<unsigned char> sequence(s.size(), 4);
+        vector<size_t> start_pos; 
+        vector<size_t> end_pos;
         
         
         // TODO: re-write this part also...
         bool scannable = false; 
         for (size_t i = 0; i < s.size(); ++i){
-            unsigned char c = m[s[i]];
+            unsigned char c = m[(int)s[i]];
+            std::cout << s[i] << " " << (unsigned int)c << "\n";
             
             if (c < 4){
-                ret.seq[i] = c;
+                sequence[i] = c;
                 if (!scannable){
                     scannable = true;
-                    ret.starts.push_back(i);
+                    start_pos.push_back(i);
+                    std::cout << "start " << i << "\n";
                 }
             }
             else {
                 if (scannable){
                     scannable = false;
-                    ret.ends.push_back(i);
+                    end_pos.push_back(i);
+                    std::cout << "end " << i << "\n";
                 }
             }
         }
         if (scannable){
-            ret.starts.push_back(s.size());
+            end_pos.push_back(s.size());
+            std::cout << "end " << s.size() << "\n";
         }
+        
+        seq_internal ret;
+        ret.seq = sequence;
+        ret.starts = start_pos;
+        ret.ends = end_pos;
         
         return ret;
     }

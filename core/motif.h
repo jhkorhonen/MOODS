@@ -28,7 +28,7 @@ public:
     double check_hit(const std::vector<unsigned char>& seq, std::size_t window_match_pos, double score);
     unsigned int size() { return m; }
     unsigned int alphabet() { return a; }
-    unsigned int window_pos() { return l; }
+    unsigned int window_pos() { return wp; }
     double threshold() { return T; }
 };
 

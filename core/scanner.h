@@ -23,7 +23,7 @@ namespace MOODS { namespace scan{
         unsigned int l;
     public:
         Scanner(const std::vector<Motif>& matrices, unsigned int alphabet_size, unsigned int window_size);
-        std::vector<std::vector<match> > scan(misc::seq_internal& s);
+        std::vector<std::vector<match> > scan(const misc::seq_internal& s);
     };
     
     

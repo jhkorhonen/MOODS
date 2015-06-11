@@ -9,6 +9,10 @@
 
 #include "moods.h"
 #include "motif.h"
+#include "moods_misc.h"
+
+#include <iostream>
+
 
 using std::vector;
 using std::size_t;
@@ -94,7 +98,7 @@ vector<unsigned int> compute_lookahead_order(const vector<double> &ed, unsigned 
         {
             order[i] = i;
         }
-        for (int i = window_pos; i < m; ++i)
+        for (int i = window_pos+l; i < m; ++i)
         {
             order[i-l] = i;
         }
@@ -122,7 +126,7 @@ vector<double> compute_lookahead_scores(const score_matrix &mat, const vector<un
         for (int i = m-l-1; i >= 0; --i)
         {
             double max = -std::numeric_limits<double>::infinity();
-            for (unsigned int j = 0; i < a; ++i)
+            for (unsigned int j = 0; j < a; ++j)
             {
                 max = std::max(max, mat[j][order[i]]);
             }
@@ -142,17 +146,31 @@ Motif::Motif (const score_matrix& matrix, const vector<double>& bg, unsigned int
     m = mat[0].size();
     a = mat.size();
     
+    std::cout << "Building motif " << m << " " << a << "\n";
+    
     // unsigned int av = 1;
     // while (av < a)
     // {
     //     av = av << 1;
     // }
     
+    
+    std::cout << "Expected differences\n";
+    
     vector<double> ed = expected_differences(mat, bg);
+    
+    std::cout << "Window position ";
     
     wp = window_position(ed, l, m);
     
+    std::cout << wp << "\n";
+    
+    std::cout << "Lookahead order\n";
+    
     lookahead_order = compute_lookahead_order(ed, l, wp, m);
+    
+    std::cout << "Lookahead scores\n";
+    
     lookahead_scores = compute_lookahead_scores(mat, lookahead_order, l, m, a);
 }
 
@@ -160,12 +178,23 @@ std::pair<bool, double> Motif::window_match(bits_t seq, bits_t shift)
 {
     
     double score = 0;
+    unsigned int MASK = MOODS::misc::mask(a);
     
-    for (unsigned int i = 0; i < std::min(l,m); ++i)
-    {
-        score += mat[seq >> (shift * (l - i - 1))][l+i];
+    if (l >= m){
+        for (unsigned int i = 0; i < m; ++i)
+        {
+            score += mat[MASK & (seq >> (shift * (l - i - 1)))][i];
+        }
+        return std::make_pair(score >= T, score);
     }
-    return std::make_pair(score + lookahead_scores[0] >= T, score);
+    else {
+        for (unsigned int i = 0; i < l; ++i)
+        {
+            score += mat[MASK & (seq >> (shift * (l - i - 1)))][wp+i];
+        }
+        return std::make_pair(score + lookahead_scores[0] >= T, score);
+    }
+    
 }
 
 double Motif::check_hit(const vector<unsigned char>& seq, size_t window_match_pos, double score)
