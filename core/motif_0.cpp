@@ -146,30 +146,12 @@ Motif::Motif (const score_matrix& matrix, const vector<double>& bg, unsigned int
     m = mat[0].size();
     a = mat.size();
     
-    std::cout << "Building motif " << m << " " << a << "\n";
-    
-    // unsigned int av = 1;
-    // while (av < a)
-    // {
-    //     av = av << 1;
-    // }
-    
-    
-    std::cout << "Expected differences\n";
-    
     vector<double> ed = expected_differences(mat, bg);
     
-    std::cout << "Window position ";
     
     wp = window_position(ed, l, m);
     
-    std::cout << wp << "\n";
-    
-    std::cout << "Lookahead order\n";
-    
     lookahead_order = compute_lookahead_order(ed, l, wp, m);
-    
-    std::cout << "Lookahead scores\n";
     
     lookahead_scores = compute_lookahead_scores(mat, lookahead_order, l, m, a);
 }

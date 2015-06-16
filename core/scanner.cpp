@@ -43,7 +43,6 @@ namespace MOODS { namespace scan{
         {
             for (size_t k = 0; k < motifs.size(); ++k)
             {
-                std::cout << code << " " << k << "\n";
                 double score;
                 bool match;
                 
@@ -67,7 +66,7 @@ namespace MOODS { namespace scan{
         
         const vector<unsigned char>& seq = s.seq;
         
-        std::cout << s.starts.size() << " " << s.ends.size() << "\n";
+        // std::cerr << s.starts.size() << " " << s.ends.size() << "\n";
         
         // Scanning
         for (size_t seq_i = 0; seq_i < s.starts.size(); ++seq_i){
@@ -77,7 +76,7 @@ namespace MOODS { namespace scan{
             
             // sequence is very short
             if (end - start < l){
-                std::cout << "short\n";
+                // std::cerr << "short\n";
                 
                 bits_t code = 0;
                 for (size_t i = start; i < end; ++i)
@@ -105,11 +104,11 @@ namespace MOODS { namespace scan{
             // sequence is long enough that we have at least one proper scanning step
             else {
                 
-                std::cout << "long\n";
+                // std::cerr << "long\n";
                 // Initialise scanner state
                 bits_t code = 0;
                 for (size_t i = start; i < start + l - 1; ++i){
-                    std::cout << code << " " << i << "\n";
+                    // std::cerr << code << " " << i << "\n";
                     code = (code << SHIFT) + seq[i];
                 }
                 
@@ -117,7 +116,7 @@ namespace MOODS { namespace scan{
                 for (size_t i = start; i < end - l + 1; ++i)
                 {
                     code = ((code << SHIFT) + seq[i + l - 1]) & MASK;
-                    std::cout << code << " " << i << "\n";
+                    // std::cerr << code << " " << i << "\n";
                 
                     if (!window_hits[code].empty())
                     {
@@ -130,7 +129,7 @@ namespace MOODS { namespace scan{
                             }
                             if (i - start >= motifs[y->matrix].window_pos() && i + motifs[y->matrix].size() - motifs[y->matrix].window_pos() <= end) // A possible hit for a longer matrix. Don't check if matrix can't be positioned entirely on the sequence here
                             {
-                                std::cout << start << " " << i << " "  << motifs[y->matrix].window_pos() <<  "\n";
+                                // std::cerr << start << " " << i << " "  << motifs[y->matrix].window_pos() <<  "\n";
                                 double score = motifs[y->matrix].check_hit(seq, i, y->score);
                                 if (score >= motifs[y->matrix].threshold()){
                                     ret[y->matrix].push_back(match{i - motifs[y->matrix].window_pos(),score});
@@ -140,13 +139,13 @@ namespace MOODS { namespace scan{
                     }
                 }
                 
-                std::cout << "tail\n";
+                // std::cerr << "tail\n";
             
                 // possible hits for matrices shorter than l near the end of current interval
                 for (size_t i = end - l + 1; i < end; ++i)
                 {
                     code = (code << SHIFT) & MASK;  // dummy character to the end of code
-                    std::cout << code << "\n";
+                    // std::cerr << code << "\n";
             
                     if (!window_hits[code].empty())
                     {

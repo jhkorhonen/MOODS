@@ -48,12 +48,7 @@ namespace MOODS { namespace misc{
         m['G'] = 2;
         
         m['t'] = 3;
-        m['T'] = 3;
-        
-        for (size_t i = 0; i < m.size(); ++i)
-            std::cout << (int)m[i];
-        std::cout << "\n";
-        
+        m['T'] = 3;        
         
         vector<unsigned char> sequence(s.size(), 4);
         vector<size_t> start_pos; 
@@ -64,7 +59,6 @@ namespace MOODS { namespace misc{
         bool scannable = false; 
         for (size_t i = 0; i < s.size(); ++i){
             unsigned char c = m[(int)s[i]];
-            std::cout << s[i] << " " << (unsigned int)c << "\n";
             
             if (c < 4){
                 sequence[i] = c;
