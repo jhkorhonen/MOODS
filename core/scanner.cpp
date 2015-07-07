@@ -28,11 +28,23 @@ namespace MOODS { namespace scan{
         a = alphabet_size;
         l = window_size;
         
-        // for (unsigned int k; k < matrices.size(), ++k)
-        // {
-        //     Motif m = Motif(matrices[k], bg, l, thresholds[k]);
-        //     motifs.push_back(m);
-        // }
+        // ---
+        
+        alphabet_map = vector<unsigned char>(256, 4);
+        
+        alphabet_map[(unsigned char)'a'] = 0;
+        alphabet_map[(unsigned char)'A'] = 0;
+        
+        alphabet_map[(unsigned char)'c'] = 1;
+        alphabet_map[(unsigned char)'C'] = 1;
+        
+        alphabet_map[(unsigned char)'g'] = 2;
+        alphabet_map[(unsigned char)'G'] = 2;
+        
+        alphabet_map[(unsigned char)'t'] = 3;
+        alphabet_map[(unsigned char)'T'] = 3;   
+        
+        // ---
         
         const bits_t SHIFT = MOODS::misc::shift(a);
         const bits_t CODE_SIZE = 1 << (SHIFT * l);
@@ -57,21 +69,56 @@ namespace MOODS { namespace scan{
         }
     }
     
-    std::vector<std::vector<match> > Scanner::scan(const misc::seq_internal& s)
+    // checks a sequence for non-scan regions and returns the corresponding bounds
+    std::vector<size_t> Scanner::preprocess_seq(const std::string& s){
+        
+        vector<size_t> bounds;
+        
+        bool scannable = false;
+        unsigned char c;
+        
+        for (size_t i = 0; i < s.size(); ++i){
+            c = alphabet_map[(unsigned char)s[i]];
+            
+            if (c < a){
+                if (!scannable){
+                    scannable = true;
+                    bounds.push_back(i);
+                    std::cerr << "start " << i << "\n";
+                }
+            }
+            else {
+                if (scannable){
+                    scannable = false;
+                    bounds.push_back(i);
+                    std::cerr << "end " << i << "\n";
+                }
+            }
+        }
+        if (scannable){
+            bounds.push_back(s.size());
+            std::cerr << "end " << s.size() << "\n";
+        }
+        
+        return bounds;
+        
+    }
+    
+    std::vector<std::vector<match> > Scanner::scan(const std::string& s)
     {
         const bits_t SHIFT = MOODS::misc::shift(a);
         const bits_t MASK = (1 << (SHIFT * l)) - 1;
         
         vector<vector<match> > ret(motifs.size(), vector<match>());
         
-        const vector<unsigned char>& seq = s.seq;
-        
-        // std::cerr << s.starts.size() << " " << s.ends.size() << "\n";
+        vector<size_t> bounds = preprocess_seq(s);
         
         // Scanning
-        for (size_t seq_i = 0; seq_i < s.starts.size(); ++seq_i){
-            size_t start = s.starts[seq_i];
-            size_t end = s.ends[seq_i];
+        for (size_t seq_i = 0; seq_i < bounds.size(); ){
+            size_t start = bounds[seq_i];
+            ++seq_i;
+            size_t end = bounds[seq_i];
+            ++seq_i;
             
             
             // sequence is very short
@@ -80,7 +127,7 @@ namespace MOODS { namespace scan{
                 
                 bits_t code = 0;
                 for (size_t i = start; i < end; ++i)
-                    code = (code << SHIFT) + seq[i];
+                    code = (code << SHIFT) + alphabet_map[s[i]];
                 
                 for (size_t i = end - start; i < l - 1; ++ i){
                     code = (code << SHIFT) & MASK;  // dummy character to the end of code
@@ -109,13 +156,13 @@ namespace MOODS { namespace scan{
                 bits_t code = 0;
                 for (size_t i = start; i < start + l - 1; ++i){
                     // std::cerr << code << " " << i << "\n";
-                    code = (code << SHIFT) + seq[i];
+                    code = (code << SHIFT) + alphabet_map[s[i]];
                 }
                 
                 // Actual scanning for the 'middle' of the sequence
                 for (size_t i = start; i < end - l + 1; ++i)
                 {
-                    code = ((code << SHIFT) + seq[i + l - 1]) & MASK;
+                    code = ((code << SHIFT) + alphabet_map[s[i + l - 1]]) & MASK;
                     // std::cerr << code << " " << i << "\n";
                 
                     if (!window_hits[code].empty())
@@ -130,8 +177,10 @@ namespace MOODS { namespace scan{
                             if (i - start >= motifs[y->matrix].window_pos() && i + motifs[y->matrix].size() - motifs[y->matrix].window_pos() <= end) // A possible hit for a longer matrix. Don't check if matrix can't be positioned entirely on the sequence here
                             {
                                 // std::cerr << start << " " << i << " "  << motifs[y->matrix].window_pos() <<  "\n";
-                                double score = motifs[y->matrix].check_hit(seq, i, y->score);
-                                if (score >= motifs[y->matrix].threshold()){
+                                double score;
+                                bool m;
+                                std::tie(m,score) = motifs[y->matrix].check_hit(s, alphabet_map, i, y->score);
+                                if (m){
                                     ret[y->matrix].push_back(match{i - motifs[y->matrix].window_pos(),score});
                                 }
                             }

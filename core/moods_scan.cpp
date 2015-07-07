@@ -41,9 +41,9 @@ namespace MOODS { namespace scan{
         std::cerr << "Parsing sequence\n";
         start = clock();
         
-        misc::seq_internal s = misc::string_to_seq_dna(seq);
-        
-        std::cerr << "Preprocessing sequence: " << std::setprecision(5) << (double)(clock() - start)/((double)CLOCKS_PER_SEC) <<     "\n";
+        // misc::seq_internal s = misc::string_to_seq_dna(seq);
+        //
+        // std::cerr << "Preprocessing sequence: " << std::setprecision(5) << (double)(clock() - start)/((double)CLOCKS_PER_SEC) <<     "\n";
 
         std::cerr << "Scanning\n";        
         start = clock();
@@ -57,7 +57,7 @@ namespace MOODS { namespace scan{
         // }
         //
         
-        auto results = scanner.scan(s);
+        auto results = scanner.scan(seq);
         
         std::cerr << "Scanning: " << std::setprecision(5) << (double)(clock() - start)/((double)CLOCKS_PER_SEC) <<     "\n";
         std::cerr << "Total: " << std::setprecision(5) << (double)(clock() - total)/((double)CLOCKS_PER_SEC) <<     "\n";

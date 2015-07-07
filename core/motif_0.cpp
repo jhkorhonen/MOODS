@@ -165,24 +165,35 @@ std::pair<bool, double> Motif::window_match(bits_t seq, bits_t shift)
     if (l >= m){
         for (unsigned int i = 0; i < m; ++i)
         {
-            score += mat[MASK & (seq >> (shift * (l - i - 1)))][i];
+            unsigned int c = MASK & (seq >> (shift * (l - i - 1))); 
+            if (c >= a){
+                // seq has characters outside the alphabet
+                // this can happen if a is not a power of 2
+                return std::make_pair(false, -std::numeric_limits<double>::infinity());
+            }
+            score += mat[c][i];
         }
         return std::make_pair(score >= T, score);
     }
     else {
         for (unsigned int i = 0; i < l; ++i)
         {
-            score += mat[MASK & (seq >> (shift * (l - i - 1)))][wp+i];
+            unsigned char c = MASK & (seq >> (shift * (l - i - 1)));
+            if (c >= a){ 
+                // see above
+                return std::make_pair(false, -std::numeric_limits<double>::infinity());
+            }
+            score += mat[c][wp+i];
         }
         return std::make_pair(score + lookahead_scores[0] >= T, score);
     }
     
 }
 
-double Motif::check_hit(const vector<unsigned char>& seq, size_t window_match_pos, double score)
+std::pair<bool, double> Motif::check_hit(const std::string& s, const vector<unsigned char>& alphabet_map, const std::size_t window_match_pos, double score)
 {
     if (m <= l){
-        return score; // matrix fits fully to the window, so window score is what we wanted...
+        return  std::make_pair(true, score); // matrix fits fully to the window, so window score is what we wanted...
     }
        
     size_t ii = window_match_pos - wp;
@@ -191,14 +202,11 @@ double Motif::check_hit(const vector<unsigned char>& seq, size_t window_match_po
     {
         if (score + lookahead_scores[i] < T)
         {
-            return -std::numeric_limits<double>::infinity(); // no match
+            return std::make_pair(false, -std::numeric_limits<double>::infinity()); // no match
         }
-        score += mat[seq[ii + lookahead_order[i]]][lookahead_order[i]];
+        score += mat[alphabet_map[s[ii + lookahead_order[i]]]][lookahead_order[i]];
     }
-    if (score >= T)
-        return score;
-    else
-        return -std::numeric_limits<double>::infinity(); // no match
+    return std::make_pair(score >= T, score);
 }
 
 } // namespace scan

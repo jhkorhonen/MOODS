@@ -28,32 +28,30 @@ vector<double> bg_from_sequence_dna(const std::string &seq, const double ps)
 {
     unsigned int alphabet_size = 4;
     vector<double> bg(alphabet_size);
-    vector<unsigned int> counts(4, 0);
+    vector<unsigned int> counts(5, 0);
     
     char c;
-    char value;
+    // char value;
+    
+    vector<unsigned char> m(256, 4);
+    
+    m[(unsigned char)'a'] = 0;
+    m[(unsigned char)'A'] = 0;
+    
+    m[(unsigned char)'c'] = 1;
+    m[(unsigned char)'C'] = 1;
+    
+    m[(unsigned char)'g'] = 2;
+    m[(unsigned char)'G'] = 2;
+    
+    m[(unsigned char)'t'] = 3;
+    m[(unsigned char)'T'] = 3;    
     
     for (size_t i = 0; i < seq.size(); ++i){
-        c = seq[i];
-        
-        switch (c)
-        {
-            case 'a':
-            case 'A': value = 0; break;
-            case 'c':
-            case 'C': value = 1; break;
-            case 'g':
-            case 'G': value = 2; break;
-            case 't':
-            case 'T': value = 3; break;
-            default: value = -1; break;
-        }
-        if (value >= 0)
-        {
-            counts[value] += 1;
-        }
-        
+        c = (unsigned char)seq[i];
+        counts[m[c]]++;
     }
+    
     for (unsigned int j = 0; j < alphabet_size; ++j){
         bg[j] = (((double)counts[j] + ps)/ ((double)seq.size() + alphabet_size * ps));
     }
