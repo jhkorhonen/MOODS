@@ -14,6 +14,7 @@ namespace std {
     %template(vector_vector_vector_double) vector<vector<vector<double> > >;
     %template(vector_match) vector<MOODS::scan::match>;
     %template(vector_vector_match) vector<vector<MOODS::scan::match> >;
+    %template(vector_string) vector<string>;
 };
 
 %include "moods.h"

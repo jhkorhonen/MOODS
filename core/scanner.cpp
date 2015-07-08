@@ -9,7 +9,7 @@
 
 #include <utility>
 #include <tuple>
-#include <iostream>
+// #include <iostream>
 
 #include "moods.h"
 #include "scanner.h"
@@ -22,14 +22,12 @@ using std::size_t;
 
 namespace MOODS { namespace scan{
 
-    Scanner::Scanner(const std::vector<Motif>& matrices, unsigned int alphabet_size, unsigned int window_size)
-    {
+    Scanner::Scanner(const std::vector<Motif>& matrices, unsigned int window_size){
+
         motifs = matrices;
-        a = alphabet_size;
+        a = 4;
         l = window_size;
-        
-        // ---
-        
+
         alphabet_map = vector<unsigned char>(256, 4);
         
         alphabet_map[(unsigned char)'a'] = 0;
@@ -42,10 +40,30 @@ namespace MOODS { namespace scan{
         alphabet_map[(unsigned char)'G'] = 2;
         
         alphabet_map[(unsigned char)'t'] = 3;
-        alphabet_map[(unsigned char)'T'] = 3;   
-        
-        // ---
-        
+        alphabet_map[(unsigned char)'T'] = 3; 
+
+        this->initialise_hit_table();  
+    }
+
+    Scanner::Scanner(const std::vector<Motif>& matrices, unsigned int window_size, const std::vector<std::string>& alphabet)
+    {
+        motifs = matrices;
+        a = alphabet.size();
+        l = window_size;
+
+        alphabet_map = vector<unsigned char>(256, a);
+
+        for (size_t i = 0; i < alphabet.size(); ++i){
+            for (size_t j = 0; j < alphabet[i].size(); ++j){
+                alphabet_map[(unsigned int)alphabet[i][j]] = i;
+            }
+        }
+
+        this->initialise_hit_table();
+    }
+
+    void Scanner::initialise_hit_table(){
+
         const bits_t SHIFT = MOODS::misc::shift(a);
         const bits_t CODE_SIZE = 1 << (SHIFT * l);
         
@@ -68,6 +86,7 @@ namespace MOODS { namespace scan{
             }
         }
     }
+
     
     // checks a sequence for non-scan regions and returns the corresponding bounds
     std::vector<size_t> Scanner::preprocess_seq(const std::string& s){
@@ -84,20 +103,17 @@ namespace MOODS { namespace scan{
                 if (!scannable){
                     scannable = true;
                     bounds.push_back(i);
-                    std::cerr << "start " << i << "\n";
                 }
             }
             else {
                 if (scannable){
                     scannable = false;
                     bounds.push_back(i);
-                    std::cerr << "end " << i << "\n";
                 }
             }
         }
         if (scannable){
             bounds.push_back(s.size());
-            std::cerr << "end " << s.size() << "\n";
         }
         
         return bounds;

@@ -160,12 +160,12 @@ std::pair<bool, double> Motif::window_match(bits_t seq, bits_t shift)
 {
     
     double score = 0;
-    unsigned int MASK = MOODS::misc::mask(a);
+    bits_t MASK = MOODS::misc::mask(a);
     
     if (l >= m){
         for (unsigned int i = 0; i < m; ++i)
         {
-            unsigned int c = MASK & (seq >> (shift * (l - i - 1))); 
+            bits_t c = MASK & (seq >> (shift * (l - i - 1)));
             if (c >= a){
                 // seq has characters outside the alphabet
                 // this can happen if a is not a power of 2
@@ -178,7 +178,7 @@ std::pair<bool, double> Motif::window_match(bits_t seq, bits_t shift)
     else {
         for (unsigned int i = 0; i < l; ++i)
         {
-            unsigned char c = MASK & (seq >> (shift * (l - i - 1)));
+            bits_t c = MASK & (seq >> (shift * (l - i - 1)));
             if (c >= a){ 
                 // see above
                 return std::make_pair(false, -std::numeric_limits<double>::infinity());
@@ -193,7 +193,7 @@ std::pair<bool, double> Motif::window_match(bits_t seq, bits_t shift)
 std::pair<bool, double> Motif::check_hit(const std::string& s, const vector<unsigned char>& alphabet_map, const std::size_t window_match_pos, double score)
 {
     if (m <= l){
-        return  std::make_pair(true, score); // matrix fits fully to the window, so window score is what we wanted...
+        return  std::make_pair(true, score); // matrix fits fully to the window, so the window score is what we wanted...
     }
        
     size_t ii = window_match_pos - wp;
@@ -204,7 +204,8 @@ std::pair<bool, double> Motif::check_hit(const std::string& s, const vector<unsi
         {
             return std::make_pair(false, -std::numeric_limits<double>::infinity()); // no match
         }
-        score += mat[alphabet_map[s[ii + lookahead_order[i]]]][lookahead_order[i]];
+        bits_t c = alphabet_map[s[ii + lookahead_order[i]]];
+        score += mat[c][lookahead_order[i]];
     }
     return std::make_pair(score >= T, score);
 }
