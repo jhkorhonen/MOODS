@@ -230,6 +230,5 @@ namespace MOODS { namespace scan{
         return ret;
     }
 
-
 } // namespace scan
 } // namespace MOODS

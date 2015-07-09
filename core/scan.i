@@ -3,6 +3,8 @@
 %{
 #include "moods.h"
 #include "moods_scan.h"
+#include "scanner.h"
+#include "scanner_tools.h"
 %}
 
 %include "std_string.i"
@@ -19,3 +21,11 @@ namespace std {
 
 %include "moods.h"
 %include "moods_scan.h"
+%include "scanner_tools.h"
+
+class MOODS::scan::Scanner {
+    public:
+        std::vector<std::vector<MOODS::scan::match> > scan(const std::string& s);
+};
+
+

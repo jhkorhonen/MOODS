@@ -17,7 +17,7 @@ namespace MOODS { namespace scan{
     
     
     class Scanner {
-        std::vector<Motif> motifs;
+        std::vector<MOODS::scan::Motif> motifs;
         std::vector<std::vector<scanner_output> > window_hits;
         unsigned int a;
         unsigned int l;
@@ -27,12 +27,11 @@ namespace MOODS { namespace scan{
         std::vector<size_t> preprocess_seq(const std::string& s); 
         
     public:
-        Scanner(const std::vector<Motif>& matrices, unsigned int window_size);
-        Scanner(const std::vector<Motif>& matrices, unsigned int window_size, const std::vector<std::string>& alphabet);
-        std::vector<std::vector<match> > scan(const std::string& s);
+        Scanner() {}
+        Scanner(const std::vector<MOODS::scan::Motif>& matrices, unsigned int window_size);
+        Scanner(const std::vector<MOODS::scan::Motif>& matrices, unsigned int window_size, const std::vector<std::string>& alphabet);
+        std::vector<std::vector<scan::match> > scan(const std::string& s);
     };
-    
-    
 }}
 
 #endif

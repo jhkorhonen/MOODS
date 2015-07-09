@@ -14,7 +14,7 @@ using std::string;
 using std::size_t;
 
 namespace MOODS { namespace scan{
-    
+
     vector< vector< scan::match> > scan_dna(const string& seq, const vector<score_matrix>& matrices, const vector<double>& bg, const vector<double> thresholds, unsigned int window_size )
     // unsigned int scan_dna(const string& seq, const vector<score_matrix>& matrices, const vector<double>& bg, const vector<double> thresholds, unsigned int window_size )
     {
