@@ -22,9 +22,8 @@ using std::size_t;
 
 namespace MOODS { namespace scan{
 
-    Scanner::Scanner(const std::vector<Motif>& matrices, unsigned int window_size){
+    Scanner::Scanner(unsigned int window_size){
 
-        motifs = matrices;
         a = 4;
         l = window_size;
 
@@ -41,13 +40,10 @@ namespace MOODS { namespace scan{
         
         alphabet_map[(unsigned char)'t'] = 3;
         alphabet_map[(unsigned char)'T'] = 3; 
-
-        this->initialise_hit_table();  
     }
 
-    Scanner::Scanner(const std::vector<Motif>& matrices, unsigned int window_size, const std::vector<std::string>& alphabet)
+    Scanner::Scanner(unsigned int window_size, const std::vector<std::string>& alphabet)
     {
-        motifs = matrices;
         a = alphabet.size();
         l = window_size;
 
@@ -60,6 +56,25 @@ namespace MOODS { namespace scan{
         }
 
         this->initialise_hit_table();
+    }
+
+    void Scanner::set_motifs(const std::vector<MOODS::scan::Motif>& motifs){
+        this->motifs = motifs;
+        this->initialise_hit_table();
+    }
+    
+    void Scanner::set_motifs(const std::vector<score_matrix>& matrices,
+                        const std::vector<double>& bg,
+                        const std::vector<double> thresholds){
+
+        this->motifs = vector<Motif>();
+        
+        for (size_t i = 0; i < matrices.size(); ++i){
+            motifs.emplace_back( matrices[i], bg, l, thresholds[i]);
+        }
+        
+        this->initialise_hit_table();
+
     }
 
     void Scanner::initialise_hit_table(){
@@ -85,6 +100,8 @@ namespace MOODS { namespace scan{
                 }
             }
         }
+
+        initialised = true;
     }
 
     
@@ -122,10 +139,17 @@ namespace MOODS { namespace scan{
     
     std::vector<std::vector<match> > Scanner::scan(const std::string& s)
     {
+
+        if (!initialised){
+            return vector<vector<match>>(0, vector<match>());
+        }
+
         const bits_t SHIFT = MOODS::misc::shift(a);
         const bits_t MASK = (1 << (SHIFT * l)) - 1;
         
         vector<vector<match> > ret(motifs.size(), vector<match>());
+
+
         
         vector<size_t> bounds = preprocess_seq(s);
         

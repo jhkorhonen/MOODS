@@ -4,7 +4,6 @@
 #include "moods.h"
 #include "moods_scan.h"
 #include "scanner.h"
-#include "scanner_tools.h"
 %}
 
 %include "std_string.i"
@@ -21,11 +20,19 @@ namespace std {
 
 %include "moods.h"
 %include "moods_scan.h"
-%include "scanner_tools.h"
 
 class MOODS::scan::Scanner {
     public:
-        std::vector<std::vector<MOODS::scan::match> > scan(const std::string& s);
+        Scanner(unsigned int window_size);
+        Scanner(unsigned int window_size, const std::vector<std::string>& alphabet);
+
+        void set_motifs(const std::vector<MOODS::scan::Motif>& motifs);
+        void set_motifs(const std::vector<score_matrix>& matrices,
+                        const std::vector<double>& bg,
+                        const std::vector<double> thresholds);
+
+        std::vector<std::vector<scan::match> > scan(const std::string& s);
+
 };
 
 

@@ -1,6 +1,9 @@
+#!/usr/bin/python
+
 import MOODS.scan
 import MOODS.tools
 
+import sys
 import time
 import os
 
@@ -13,10 +16,17 @@ def load_matrix(filename):
 total = time.clock()
 start = time.clock()
 
-# with open("../examples/data/sequence/dnaACGT.txt", "r") as file_handle:
-with open("acgt_random_60.txt", "r") as file_handle:
+if len(sys.argv) < 3:
+	print "usage: python ex-basic-usage.py [sequence file] [matrix directory]"
+	sys.exit(1)
+
+# read an sequence
+# in this example we do not do any fancy input parsing,
+# so the file should have only characters ACGT
+# (so no line breaks for instance)
+file_name = sys.argv[1]
+with open(file_name, "r") as file_handle:
     seq = file_handle.read()
-    # seq = ''.join([filter(lambda x: x in 'acgtACGT', line) for line in file_handle if line[0] != '>'])
 
 end = time.clock()
 
@@ -24,7 +34,9 @@ print "Reading sequence:", end - start
 
 start = time.clock()
 
-matrix_directory = "../examples/data/matrix/JASPAR_CORE_2008/"
+# read the matrix files
+# should be in JASPAR .pfm format
+matrix_directory = sys.argv[2]
 matrix_names = [filename for filename in os.listdir(matrix_directory) if filename[-4:] == '.pfm']
 
 matrices = [load_matrix(matrix_directory + filename) for filename in matrix_names]
@@ -35,22 +47,31 @@ print "Reading matrices:", end - start
 
 start = time.clock()
 
+# estimate background from the sequence file
 bg = MOODS.tools.bg_from_sequence_dna(seq,1)
 
 end = time.clock()
 
 print "Computing background:", end - start
 
+# log-odds transformation for matrices
 matrices = [MOODS.tools.log_odds(m, bg, 1) for m in matrices]
+# thresholds computed from p-value
 thresholds = [MOODS.tools.threshold_from_p(m, bg, 0.0001) for m in matrices]
 
+start = time.clock()
+
+# scanning
 results = MOODS.scan.scan_dna(seq, matrices, bg, thresholds, 7)
 
-# for (matrix,matrix_name,result) in zip(matrices, matrix_names, results):
-#     print matrix_name, len(result)
+end = time.clock()
 
-print "Hits:", sum([len(r) for r in results])
+print "Scanning:", end - start
 
+
+print "Total hits:", sum([len(r) for r in results])
+
+# Uncomment the following to print all hits
 # for (matrix,matrix_name,result) in zip(matrices, matrix_names, results):
 #     l = len(matrix[0])
 #     for r in sorted(result, key=lambda r: r.pos):
@@ -61,4 +82,4 @@ print "Hits:", sum([len(r) for r in results])
 # for i, m in zip(range(len(matches)), matches):
 #     print "Hits for", i, ":", len(m)
 
-print "Total time for everything:", time.clock() - total
+print "Total time:", time.clock() - total
