@@ -26,6 +26,7 @@ namespace MOODS { namespace scan{
                         const std::vector<double> thresholds);
 
         std::vector<std::vector<scan::match> > scan(const std::string& s);
+        std::vector<std::vector<scan::match> > scan(const std::string& s, size_t max_hits);
 
     private:
         std::vector<MOODS::scan::Motif> motifs;

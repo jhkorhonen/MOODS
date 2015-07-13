@@ -27,7 +27,7 @@ bg = MOODS.tools.flat_bg(4)
 # log-odds transformation for matrices
 matrices = [MOODS.tools.log_odds(m, bg, 1) for m in matrices]
 # thresholds computed from p-value
-thresholds = [MOODS.tools.threshold_from_p(m, bg, 0.001) for m in matrices]
+thresholds = [MOODS.tools.threshold_from_p(m, bg, 0.0001) for m in matrices]
 
 
 # instead of just calling the scan function, we'll build a scanner object
@@ -41,5 +41,12 @@ scanner.set_motifs(matrices, bg, thresholds)
 for i in xrange(100):
 	seq = ''.join([random.choice(['A', 'C', 'G', 'T']) for j in range(10000)])
 	results = scanner.scan(seq)
+
+	# you can specify a limit for the number of hits:
+	#
+	# results = scanner.scan(seq, 10)
+	#
+	# this is mostly intended to prevent things from slowing down too much
+	# when the threshold is too loose for some reason
 
 	print "Sequence:", i, "Hits:", sum([len(r) for r in results])
