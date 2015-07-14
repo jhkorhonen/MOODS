@@ -6,6 +6,8 @@
 #include "moods_scan.h"
 #include "moods_misc.h"
 
+#include <memory>
+
 namespace MOODS { namespace scan{
     
     struct scanner_output
@@ -20,16 +22,17 @@ namespace MOODS { namespace scan{
         Scanner(unsigned int window_size);
         Scanner(unsigned int window_size, const std::vector<std::string>& alphabet);
 
-        void set_motifs(const std::vector<MOODS::scan::Motif>& motifs);
+        // void set_motifs(const std::vector<MOODS::scan::Motif>& motifs);
         void set_motifs(const std::vector<score_matrix>& matrices,
                         const std::vector<double>& bg,
                         const std::vector<double> thresholds);
 
         std::vector<std::vector<scan::match> > scan(const std::string& s);
-        std::vector<std::vector<scan::match> > scan(const std::string& s, size_t max_hits);
+        // std::vector<std::vector<scan::match> > scan(const std::string& s, size_t max_hits);
 
     private:
-        std::vector<MOODS::scan::Motif> motifs;
+        // std::vector<MOODS::scan::Motif> motifs;
+        std::vector<std::unique_ptr<MOODS::scan::Motif>> motifs;
         std::vector<std::vector<scanner_output> > window_hits;
         unsigned int a;
         unsigned int l;

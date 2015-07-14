@@ -11,9 +11,6 @@
 #include "motif.h"
 #include "moods_misc.h"
 
-#include <iostream>
-
-
 using std::vector;
 using std::size_t;
 
@@ -137,7 +134,7 @@ vector<double> compute_lookahead_scores(const score_matrix &mat, const vector<un
     }
 }
 
-Motif::Motif (const score_matrix& matrix, const vector<double>& bg, unsigned int window_size, double threshold)
+Motif0::Motif0 (const score_matrix& matrix, const vector<double>& bg, unsigned int window_size, double threshold)
 {
     mat = matrix;
     l = window_size;
@@ -156,7 +153,7 @@ Motif::Motif (const score_matrix& matrix, const vector<double>& bg, unsigned int
     lookahead_scores = compute_lookahead_scores(mat, lookahead_order, l, m, a);
 }
 
-std::pair<bool, double> Motif::window_match(bits_t seq, bits_t shift)
+std::pair<bool, double> Motif0::window_match(bits_t seq, bits_t shift)
 {
     
     double score = 0;
@@ -190,7 +187,7 @@ std::pair<bool, double> Motif::window_match(bits_t seq, bits_t shift)
     
 }
 
-std::pair<bool, double> Motif::check_hit(const std::string& s, const vector<unsigned char>& alphabet_map, const std::size_t window_match_pos, double score)
+std::pair<bool, double> Motif0::check_hit(const std::string& s, const vector<unsigned char>& alphabet_map, const std::size_t window_match_pos, double score)
 {
     if (m <= l){
         return  std::make_pair(true, score); // matrix fits fully to the window, so the window score is what we wanted...

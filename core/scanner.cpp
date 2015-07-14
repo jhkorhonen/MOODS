@@ -9,7 +9,6 @@
 
 #include <utility>
 #include <tuple>
-// #include <iostream>
 
 #include "moods.h"
 #include "scanner.h"
@@ -18,6 +17,7 @@
 
 using std::vector;
 using std::size_t;
+using std::unique_ptr;
 
 
 namespace MOODS { namespace scan{
@@ -58,19 +58,19 @@ namespace MOODS { namespace scan{
         this->initialise_hit_table();
     }
 
-    void Scanner::set_motifs(const std::vector<MOODS::scan::Motif>& motifs){
-        this->motifs = motifs;
-        this->initialise_hit_table();
-    }
+    // void Scanner::set_motifs(const std::vector<MOODS::scan::Motif>& motifs){
+    //     this->motifs = motifs;
+    //     this->initialise_hit_table();
+    // }
     
     void Scanner::set_motifs(const std::vector<score_matrix>& matrices,
                         const std::vector<double>& bg,
                         const std::vector<double> thresholds){
 
-        this->motifs = vector<Motif>();
+        this->motifs = vector<unique_ptr<Motif>>();
         
         for (size_t i = 0; i < matrices.size(); ++i){
-            motifs.emplace_back( matrices[i], bg, l, thresholds[i]);
+            motifs.emplace_back(new Motif0(matrices[i], bg, l, thresholds[i]));
         }
         
         this->initialise_hit_table();
@@ -91,11 +91,11 @@ namespace MOODS { namespace scan{
                 double score;
                 bool match;
                 
-                std::tie(match,score) = motifs[k].window_match(code, SHIFT);
+                std::tie(match,score) = motifs[k]->window_match(code, SHIFT);
                 
                 if (match)
                 {
-                    scanner_output op = {score, k, motifs[k].size() <= l};
+                    scanner_output op = {score, k, motifs[k]->size() <= l};
                     window_hits[code].emplace_back(op);
                 }
             }
@@ -178,7 +178,7 @@ namespace MOODS { namespace scan{
                         
                         for (auto y = window_hits[code].begin(); y != window_hits[code].end(); ++y)
                         {
-                            if (y->full && motifs[y->matrix].size() <= end - i) // only sufficiently short hits are considered
+                            if (y->full && motifs[y->matrix]->size() <= end - i) // only sufficiently short hits are considered
                             {
                                 ret[y->matrix].push_back(match{i,y->score});
                             }
@@ -207,13 +207,13 @@ namespace MOODS { namespace scan{
                                 ret[y->matrix].push_back(match{i,y->score});
                                 continue;
                             }
-                            if (i - start >= motifs[y->matrix].window_pos() && i + motifs[y->matrix].size() - motifs[y->matrix].window_pos() <= end) // A possible hit for a longer matrix. Don't check if matrix can't be positioned entirely on the sequence here
+                            if (i - start >= motifs[y->matrix]->window_pos() && i + motifs[y->matrix]->size() - motifs[y->matrix]->window_pos() <= end) // A possible hit for a longer matrix. Don't check if matrix can't be positioned entirely on the sequence here
                             {
                                 double score;
                                 bool m;
-                                std::tie(m,score) = motifs[y->matrix].check_hit(s, alphabet_map, i, y->score);
+                                std::tie(m,score) = motifs[y->matrix]->check_hit(s, alphabet_map, i, y->score);
                                 if (m){
-                                    ret[y->matrix].push_back(match{i - motifs[y->matrix].window_pos(),score});
+                                    ret[y->matrix].push_back(match{i - motifs[y->matrix]->window_pos(),score});
                                 }
                             }
                         }
@@ -230,7 +230,7 @@ namespace MOODS { namespace scan{
                 
                         for (auto y = window_hits[code].begin(); y != window_hits[code].end(); ++y)
                         {
-                            if (y->full && motifs[y->matrix].size() < end - i) // only sufficiently short hits are considered
+                            if (y->full && motifs[y->matrix]->size() < end - i) // only sufficiently short hits are considered
                             {
                                 ret[y->matrix].push_back(match{i,y->score});
                             }
@@ -247,154 +247,154 @@ namespace MOODS { namespace scan{
     // -------------
     // TODO: re-write this without code duplication
     // -------------
-    std::vector<std::vector<match> > Scanner::scan(const std::string& s, size_t max_hits)
-    {
+    // std::vector<std::vector<match> > Scanner::scan(const std::string& s, size_t max_hits)
+    // {
 
-        if (!initialised){
-            return vector<vector<match>>(0, vector<match>());
-        }
+    //     if (!initialised){
+    //         return vector<vector<match>>(0, vector<match>());
+    //     }
 
-        const bits_t SHIFT = MOODS::misc::shift(a);
-        const bits_t MASK = (1 << (SHIFT * l)) - 1;
+    //     const bits_t SHIFT = MOODS::misc::shift(a);
+    //     const bits_t MASK = (1 << (SHIFT * l)) - 1;
         
-        vector<vector<match> > ret(motifs.size(), vector<match>());
+    //     vector<vector<match> > ret(motifs.size(), vector<match>());
 
-        vector<size_t> hits(motifs.size(), 0);
-        size_t matrices_left = motifs.size();
+    //     vector<size_t> hits(motifs.size(), 0);
+    //     size_t matrices_left = motifs.size();
         
-        vector<size_t> bounds = preprocess_seq(s);
+    //     vector<size_t> bounds = preprocess_seq(s);
         
-        // Scanning
-        for (size_t seq_i = 0; seq_i < bounds.size(); ){
-            size_t start = bounds[seq_i];
-            ++seq_i;
-            size_t end = bounds[seq_i];
-            ++seq_i;
+    //     // Scanning
+    //     for (size_t seq_i = 0; seq_i < bounds.size(); ){
+    //         size_t start = bounds[seq_i];
+    //         ++seq_i;
+    //         size_t end = bounds[seq_i];
+    //         ++seq_i;
             
             
-            // sequence is very short
-            if (end - start < l){
+    //         // sequence is very short
+    //         if (end - start < l){
                 
-                bits_t code = 0;
-                for (size_t i = start; i < end; ++i)
-                    code = (code << SHIFT) + alphabet_map[s[i]];
+    //             bits_t code = 0;
+    //             for (size_t i = start; i < end; ++i)
+    //                 code = (code << SHIFT) + alphabet_map[s[i]];
                 
-                for (size_t i = end - start; i < l - 1; ++ i){
-                    code = (code << SHIFT) & MASK;  // dummy character to the end of code
-                }
+    //             for (size_t i = end - start; i < l - 1; ++ i){
+    //                 code = (code << SHIFT) & MASK;  // dummy character to the end of code
+    //             }
                 
                 
-                for (size_t i = start; i < end; ++i)
-                    if (!window_hits[code].empty())
-                    {
-                        code = (code << SHIFT) & MASK;  // dummy character to the end of code
+    //             for (size_t i = start; i < end; ++i)
+    //                 if (!window_hits[code].empty())
+    //                 {
+    //                     code = (code << SHIFT) & MASK;  // dummy character to the end of code
                         
-                        for (auto y = window_hits[code].begin(); y != window_hits[code].end(); ++y)
-                        {
-                            if (y->full && motifs[y->matrix].size() <= end - i) // only sufficiently short hits are considered
-                            {
-                                if (hits[y->matrix] < max_hits){
-                                    ret[y->matrix].push_back(match{i,y->score});
-                                    hits[y->matrix]++;
-                                    if (hits[y->matrix] == max_hits){
-                                        matrices_left--;
-                                        if (matrices_left == 0){
-                                            return ret;
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            // sequence is long enough that we have at least one "proper" scanning step
-            else {
-                // Initialise scanner state
-                bits_t code = 0;
-                for (size_t i = start; i < start + l - 1; ++i){
-                    code = (code << SHIFT) + alphabet_map[s[i]];
-                }
+    //                     for (auto y = window_hits[code].begin(); y != window_hits[code].end(); ++y)
+    //                     {
+    //                         if (y->full && motifs[y->matrix].size() <= end - i) // only sufficiently short hits are considered
+    //                         {
+    //                             if (hits[y->matrix] < max_hits){
+    //                                 ret[y->matrix].push_back(match{i,y->score});
+    //                                 hits[y->matrix]++;
+    //                                 if (hits[y->matrix] == max_hits){
+    //                                     matrices_left--;
+    //                                     if (matrices_left == 0){
+    //                                         return ret;
+    //                                     }
+    //                                 }
+    //                             }
+    //                         }
+    //                     }
+    //                 }
+    //             }
+    //         // sequence is long enough that we have at least one "proper" scanning step
+    //         else {
+    //             // Initialise scanner state
+    //             bits_t code = 0;
+    //             for (size_t i = start; i < start + l - 1; ++i){
+    //                 code = (code << SHIFT) + alphabet_map[s[i]];
+    //             }
                 
-                // Actual scanning for the 'middle' of the sequence
-                for (size_t i = start; i < end - l + 1; ++i)
-                {
-                    code = ((code << SHIFT) + alphabet_map[s[i + l - 1]]) & MASK;
+    //             // Actual scanning for the 'middle' of the sequence
+    //             for (size_t i = start; i < end - l + 1; ++i)
+    //             {
+    //                 code = ((code << SHIFT) + alphabet_map[s[i + l - 1]]) & MASK;
 
-                    if (!window_hits[code].empty())
-                    {
-                        for (auto y = window_hits[code].begin(); y != window_hits[code].end(); ++y)
-                        {
-                            if (y->full) // A Hit for a matrix of length <= q
-                            {
-                                    if (hits[y->matrix] < max_hits){
-                                    ret[y->matrix].push_back(match{i,y->score});
-                                    hits[y->matrix]++;
-                                    if (hits[y->matrix] == max_hits){
-                                        matrices_left--;
-                                        if (matrices_left == 0){
-                                            return ret;
-                                        }
-                                    }
-                                }
+    //                 if (!window_hits[code].empty())
+    //                 {
+    //                     for (auto y = window_hits[code].begin(); y != window_hits[code].end(); ++y)
+    //                     {
+    //                         if (y->full) // A Hit for a matrix of length <= q
+    //                         {
+    //                                 if (hits[y->matrix] < max_hits){
+    //                                 ret[y->matrix].push_back(match{i,y->score});
+    //                                 hits[y->matrix]++;
+    //                                 if (hits[y->matrix] == max_hits){
+    //                                     matrices_left--;
+    //                                     if (matrices_left == 0){
+    //                                         return ret;
+    //                                     }
+    //                                 }
+    //                             }
 
-                                continue;
-                            }
-                            if (i - start >= motifs[y->matrix].window_pos() && i + motifs[y->matrix].size() - motifs[y->matrix].window_pos() <= end) // A possible hit for a longer matrix. Don't check if matrix can't be positioned entirely on the sequence here
-                            {
-                                double score;
-                                bool m;
+    //                             continue;
+    //                         }
+    //                         if (i - start >= motifs[y->matrix].window_pos() && i + motifs[y->matrix].size() - motifs[y->matrix].window_pos() <= end) // A possible hit for a longer matrix. Don't check if matrix can't be positioned entirely on the sequence here
+    //                         {
+    //                             double score;
+    //                             bool m;
 
-                                if (hits[y->matrix] < max_hits){
+    //                             if (hits[y->matrix] < max_hits){
 
-                                    std::tie(m,score) = motifs[y->matrix].check_hit(s, alphabet_map, i, y->score);
+    //                                 std::tie(m,score) = motifs[y->matrix].check_hit(s, alphabet_map, i, y->score);
 
-                                    if (m){
-                                        ret[y->matrix].push_back(match{i - motifs[y->matrix].window_pos(),score});
-                                        hits[y->matrix]++;
-                                        if (hits[y->matrix] == max_hits){
-                                            matrices_left--;
-                                            if (matrices_left == 0){
-                                                return ret;
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
+    //                                 if (m){
+    //                                     ret[y->matrix].push_back(match{i - motifs[y->matrix].window_pos(),score});
+    //                                     hits[y->matrix]++;
+    //                                     if (hits[y->matrix] == max_hits){
+    //                                         matrices_left--;
+    //                                         if (matrices_left == 0){
+    //                                             return ret;
+    //                                         }
+    //                                     }
+    //                                 }
+    //                             }
+    //                         }
+    //                     }
+    //                 }
+    //             }
             
-                // possible hits for matrices shorter than l near the end of current interval
-                for (size_t i = end - l + 1; i < end; ++i)
-                {
-                    code = (code << SHIFT) & MASK;  // dummy character to the end of code
+    //             // possible hits for matrices shorter than l near the end of current interval
+    //             for (size_t i = end - l + 1; i < end; ++i)
+    //             {
+    //                 code = (code << SHIFT) & MASK;  // dummy character to the end of code
             
-                    if (!window_hits[code].empty())
-                    {
+    //                 if (!window_hits[code].empty())
+    //                 {
                 
-                        for (auto y = window_hits[code].begin(); y != window_hits[code].end(); ++y)
-                        {
-                            if (y->full && motifs[y->matrix].size() < end - i) // only sufficiently short hits are considered
-                            {
-                                if (hits[y->matrix] < max_hits){
-                                    ret[y->matrix].push_back(match{i,y->score});
-                                    hits[y->matrix]++;
-                                    if (hits[y->matrix] == max_hits){
-                                        matrices_left--;
-                                        if (matrices_left == 0){
-                                            return ret;
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            } 
-        }
+    //                     for (auto y = window_hits[code].begin(); y != window_hits[code].end(); ++y)
+    //                     {
+    //                         if (y->full && motifs[y->matrix].size() < end - i) // only sufficiently short hits are considered
+    //                         {
+    //                             if (hits[y->matrix] < max_hits){
+    //                                 ret[y->matrix].push_back(match{i,y->score});
+    //                                 hits[y->matrix]++;
+    //                                 if (hits[y->matrix] == max_hits){
+    //                                     matrices_left--;
+    //                                     if (matrices_left == 0){
+    //                                         return ret;
+    //                                     }
+    //                                 }
+    //                             }
+    //                         }
+    //                     }
+    //                 }
+    //             }
+    //         } 
+    //     }
         
-        return ret;
-    }
+    //     return ret;
+    // }
 
 } // namespace scan
 } // namespace MOODS
