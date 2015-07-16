@@ -71,7 +71,7 @@ fr = results[:len(matrices)]
 rr = results[len(matrices):]
 
 # mix the results together, use + and - to indicate strand
-results = [ [(r.pos, r.score, '+') for r in fr[i]] + [(r.pos, r.score, '-') for r in rr[i]] for i in xrange(N)]
+results = [ [(r.pos, r.score, '+') for r in fr[i]] + [(r.pos, r.score, '-') for r in rr[i]] for i in xrange(len(matrices))]
 
 
 end = time.clock()

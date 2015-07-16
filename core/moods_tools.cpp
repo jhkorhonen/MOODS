@@ -10,6 +10,8 @@
 #include "moods.h"
 #include "moods_tools.h"
 
+#include <climits>
+
 using std::vector;
 using std::size_t;
 
