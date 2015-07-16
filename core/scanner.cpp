@@ -9,6 +9,7 @@
 
 #include <utility>
 #include <tuple>
+#include <memory>
 
 #include "moods.h"
 #include "scanner.h"
@@ -70,7 +71,12 @@ namespace MOODS { namespace scan{
         this->motifs = vector<unique_ptr<Motif>>();
         
         for (size_t i = 0; i < matrices.size(); ++i){
-            motifs.emplace_back(new Motif0(matrices[i], bg, l, thresholds[i]));
+            if (matrices[i].size() == a){
+               motifs.emplace_back(new Motif0(matrices[i], bg, l, thresholds[i]));
+            }
+            else {
+                motifs.emplace_back(new MotifH(matrices[i], bg, l, thresholds[i], a));
+            }
         }
         
         this->initialise_hit_table();

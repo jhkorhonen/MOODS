@@ -28,7 +28,7 @@ vector<double> MotifH::expected_scores(const vector<double> &bg){
     for (int i = 0; i < cols; ++i){
         for (int j = 0; j < rows; ++j){
             double bg_prop = 1;
-            for (k = 0; k < q; ++k){
+            for (unsigned int k = 0; k < q; ++k){
                 bg_prop *= bg[MASK & (j >> (SHIFT * (q - 1 - k)))];
             }
             ret[i] += bg_prop * mat[j][i];
@@ -78,7 +78,7 @@ vector<double> MotifH::max_scores_b(size_t start, size_t end){
 
 }
 
-vector<double> MotifH::window_position(const vector<double>& es){
+size_t MotifH::window_position(const vector<double>& es){
 
     if (l >= m){
         return 0;
@@ -86,7 +86,7 @@ vector<double> MotifH::window_position(const vector<double>& es){
 
     // first, we want to compute the max score in each possible window
     // m - l + 1 is the last possible windows position
-    vector<double> window_scores(m - l + 1, -std::numeric_limits<double>::infinity())
+    vector<double> window_scores(m - l + 1, -std::numeric_limits<double>::infinity());
 
     for (unsigned int start = 0; start < m - l + 1; ++start){
         vector<double> ss = this->max_scores_f(start, start + l - q - 2);
@@ -101,15 +101,15 @@ vector<double> MotifH::window_position(const vector<double>& es){
     for (unsigned int i = 0; i < l - q + 1; ++i){
         current_exp = es[i];
     }
-    double max_loss = p_scores[0] - current_exp;
-    int window_pos = 0;
+    double max_loss = window_scores[0] - current_exp;
+    size_t window_pos = 0;
     for (unsigned int i = 1; i < m - l + 1; ++i){
         current_exp -= es[i];
         current_exp += es[i+l-q];
 
-        if (p_scores[i] - current_exp > max_loss){
+        if (window_scores[i] - current_exp > max_loss){
             window_pos = i+1;
-            max_loss = p_scores[i] - current_exp;
+            max_loss = window_scores[i] - current_exp;
         }
     }
 
@@ -189,23 +189,27 @@ vector<double> MotifH::max_suffix_scores(){
 //     }
 // }
 
-MotifH::MotifH (const score_matrix& matrix, const vector<double>& bg, unsigned int window_size, double threshold, unsigned int alphabet_size, unsigned int dep_len)
+MotifH::MotifH (const score_matrix& matrix, const vector<double>& bg, unsigned int window_size, double threshold, unsigned int alphabet_size)
 {
+
+    for (size_t i = 0; i < matrix.size(); ++i){
+        for (size_t j = 0; j < matrix[0].size(); ++j){
+        }
+    }
 
     mat = matrix;
     T = threshold;
 
     l = window_size;
-    q = dep_len;
     a = alphabet_size;
-    m = mat[0].size() + q - 1;
-    
     cols = mat[0].size();
     rows = mat.size();
 
+    q = MOODS::misc::q_gram_size(rows, a);
+    m = mat[0].size() + q - 1;
+
     vector<double> es = this->expected_scores(bg);
     wp = this->window_position(es);
-
     P = this->max_prefix_scores();
     S = this->max_suffix_scores();
     
@@ -216,7 +220,6 @@ MotifH::MotifH (const score_matrix& matrix, const vector<double>& bg, unsigned i
 
 std::pair<bool, double> MotifH::window_match(bits_t seq, bits_t shift)
 {
-    
     double score = 0;
     bits_t SHIFT = MOODS::misc::shift(a);
     bits_t MASK = (1 << (SHIFT * q)) - 1;
@@ -236,7 +239,7 @@ std::pair<bool, double> MotifH::window_match(bits_t seq, bits_t shift)
             score += mat[c][wp+i];
         }
 
-        bits_t prefix = seq >> (SHIFT * (l - q + 1))); // first q - 1 "characters"
+        bits_t prefix = seq >> (SHIFT * (l - q + 1)); // first q - 1 "characters"
         bits_t suffix = seq & ((1 << (SHIFT * (q-1))) - 1); // last q - 1 "characters"
         return std::make_pair(score + P[prefix] + S[suffix] >= T, score);
     }
@@ -262,10 +265,10 @@ std::pair<bool, double> MotifH::check_hit(const std::string& s, const vector<uns
         bits_t CODE = 0;
 
         for (size_t i = 0; i < q-1; ++i){
-            CODE = (CODE << SHIFT) ^ alphabet_map[s[ii + i]];
+            CODE = MASK & ((CODE << SHIFT) ^ alphabet_map[s[ii + i]]);
         }
         for (size_t i = 0; i < wp; ++i){
-            CODE = (CODE << SHIFT) ^ alphabet_map[s[ii + i + q - 1]];
+            CODE = MASK & ((CODE << SHIFT) ^ alphabet_map[s[ii + i + q - 1]]);
             score += mat[CODE][i];
         }
     }
@@ -275,10 +278,10 @@ std::pair<bool, double> MotifH::check_hit(const std::string& s, const vector<uns
         bits_t CODE = 0;
 
         for (size_t i = wp+l-q+1; i < wp+l; ++i){
-            CODE = (CODE << SHIFT) ^ alphabet_map[s[ii + i]];
+            CODE = MASK & (CODE << SHIFT) ^ alphabet_map[s[ii + i]];
         }
         for (size_t i = wp+l-q+1; i < cols; ++i){
-            CODE = (CODE << SHIFT) ^ alphabet_map[s[ii + i + q - 1]];
+            CODE = MASK & (CODE << SHIFT) ^ alphabet_map[s[ii + i + q - 1]];
             score += mat[CODE][i];
         }
     }

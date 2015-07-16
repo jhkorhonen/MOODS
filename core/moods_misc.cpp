@@ -1,6 +1,5 @@
 #include "moods.h"
 #include "moods_misc.h"
-#include <iostream>
 
 
 using std::vector;
@@ -28,6 +27,18 @@ namespace MOODS { namespace misc{
             b = b << 1;
         }
         return b-1;
+    }
+
+    unsigned int q_gram_size(size_t rows, unsigned int a){
+        unsigned int q = 0;
+        unsigned int s = 1;
+        
+
+        while (s < rows){
+            q += 1;
+            s *= a;
+        }
+        return q;   
     }
 
 }}

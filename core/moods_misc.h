@@ -7,6 +7,7 @@ namespace MOODS { namespace misc{
     
     unsigned int shift(unsigned int a);
     bits_t mask(unsigned int a);
+    unsigned int q_gram_size(size_t rows, unsigned int a);
 }}
 
 
