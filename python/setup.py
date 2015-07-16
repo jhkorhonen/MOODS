@@ -1,4 +1,4 @@
-       #!/usr/bin/env python
+#!/usr/bin/env python
 
 """
 setup.py file for MOODS
@@ -12,12 +12,6 @@ tools_mod = Extension('MOODS._tools',
                            include_dirs=["core/"],
                            extra_compile_args=['-march=native', '-O3', '-fPIC', '--std=c++0x'],
                            )
-                           
-# misc_mod = Extension('MOODS._misc',
-#                            sources=['../core/misc_wrap.cxx', '../core/moods_misc.cpp'],
-#                            include_dirs=["core/"],
-#                            extra_compile_args=['-march=native', '-O3', '-fPIC', '--std=c++0x'],
-#                            )
 
 scan_mod = Extension('MOODS._scan',
                            sources=['../core/scan_wrap.cxx',
