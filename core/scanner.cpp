@@ -142,18 +142,22 @@ namespace MOODS { namespace scan{
         return bounds;
         
     }
+
     
-    std::vector<std::vector<match> > Scanner::scan(const std::string& s)
+    // std::vector<std::vector<match> > Scanner::scan(const std::string& s)
+    template<typename T> 
+    void Scanner::process_matches(const std::string& s, const T& match_handler)
     {
 
         if (!initialised){
-            return vector<vector<match>>(0, vector<match>());
+            // return vector<vector<match>>(0, vector<match>());
+            return;
         }
 
         const bits_t SHIFT = MOODS::misc::shift(a);
         const bits_t MASK = (1 << (SHIFT * l)) - 1;
         
-        vector<vector<match> > ret(motifs.size(), vector<match>());
+        // vector<vector<match> > ret(motifs.size(), vector<match>());
         
         vector<size_t> bounds = preprocess_seq(s);
         
@@ -175,20 +179,21 @@ namespace MOODS { namespace scan{
                 for (size_t i = end - start; i < l - 1; ++ i){
                     code = (code << SHIFT) & MASK;  // dummy character to the end of code
                 }
-                
-                
+
                 for (size_t i = start; i < end; ++i)
-                    if (!window_hits[code].empty())
+                    if (match_handler.has_hits(code))
                     {
                         code = (code << SHIFT) & MASK;  // dummy character to the end of code
                         
-                        for (auto y = window_hits[code].begin(); y != window_hits[code].end(); ++y)
+                        for (const scanner_output& y : match_handler.hits(code))
                         {
-                            if (y->full && motifs[y->matrix]->size() <= end - i) // only sufficiently short hits are considered
+                            if (y.full && motifs[y.matrix]->size() <= end - i) // only sufficiently short hits are considered
                             {
-                                ret[y->matrix].push_back(match{i,y->score});
+                                match_handler.add_match(y.matrix, i, y.score);
+                                // ret[y.matrix].push_back(match{i,y.score});
                             }
                         }
+                        match_handler.clean_up();
                     }
                 }
             // sequence is long enough that we have at least one "proper" scanning step
@@ -204,25 +209,26 @@ namespace MOODS { namespace scan{
                 {
                     code = ((code << SHIFT) + alphabet_map[s[i + l - 1]]) & MASK;
 
-                    if (!window_hits[code].empty())
+                    if (match_handler.has_hits(code))
                     {
-                        for (auto y = window_hits[code].begin(); y != window_hits[code].end(); ++y)
+                        for (const scanner_output& y : match_handler.hits(code))
                         {
-                            if (y->full) // A Hit for a matrix of length <= q
+                            if (y.full) // A Hit for a matrix of length <= q
                             {
-                                ret[y->matrix].push_back(match{i,y->score});
+                                match_handler.add_match(y.matrix, i, y.score);
                                 continue;
                             }
-                            if (i - start >= motifs[y->matrix]->window_pos() && i + motifs[y->matrix]->size() - motifs[y->matrix]->window_pos() <= end) // A possible hit for a longer matrix. Don't check if matrix can't be positioned entirely on the sequence here
+                            if (i - start >= motifs[y.matrix]->window_pos() && i + motifs[y.matrix]->size() - motifs[y.matrix]->window_pos() <= end) // A possible hit for a longer matrix. Don't check if matrix can't be positioned entirely on the sequence here
                             {
                                 double score;
                                 bool m;
-                                std::tie(m,score) = motifs[y->matrix]->check_hit(s, alphabet_map, i, y->score);
+                                std::tie(m,score) = motifs[y.matrix]->check_hit(s, alphabet_map, i, y.score);
                                 if (m){
-                                    ret[y->matrix].push_back(match{i - motifs[y->matrix]->window_pos(),score});
+                                    match_handler.add_match(y.matrix, i - motifs[y.matrix]->window_pos(), score);
                                 }
                             }
                         }
+                        match_handler.clean_up();
                     }
                 }
             
@@ -231,16 +237,18 @@ namespace MOODS { namespace scan{
                 {
                     code = (code << SHIFT) & MASK;  // dummy character to the end of code
             
-                    if (!window_hits[code].empty())
+                    if (match_handler.has_hits(code))
                     {
-                
-                        for (auto y = window_hits[code].begin(); y != window_hits[code].end(); ++y)
+                        
+                        for (const scanner_output& y : match_handler.hits(code))
                         {
-                            if (y->full && motifs[y->matrix]->size() < end - i) // only sufficiently short hits are considered
+                            if (y.full && motifs[y.matrix]->size() < end - i) // only sufficiently short hits are considered
                             {
-                                ret[y->matrix].push_back(match{i,y->score});
+                                match_handler.add_match(y.matrix, i, y.score);
+                                // ret[y.matrix].push_back(match{i,y.score});
                             }
                         }
+                        match_handler.clean_up();
                     }
                 }
             } 
@@ -249,158 +257,50 @@ namespace MOODS { namespace scan{
         return ret;
     }
 
+    // match_handler
+    //     bool has_hits(code)
+    //     auto(container) hits(code)
+    //     void add_hit(matrix, pos, score)
+    //     void
 
-    // -------------
-    // TODO: re-write this without code duplication
-    // -------------
-    // std::vector<std::vector<match> > Scanner::scan(const std::string& s, size_t max_hits)
-    // {
+    class MH{
+    public:
+        MH(size_t motifs, const std::vector<std::vector<scanner_output>>& _hits) : hits(_hits)
+           {
+            results = vector<vector<match> >(motifs, vector<match>());
+           }
 
-    //     if (!initialised){
-    //         return vector<vector<match>>(0, vector<match>());
-    //     }
+        bool has_hits(bits_t code){
+            return !hits[code].empty();
+        }
 
-    //     const bits_t SHIFT = MOODS::misc::shift(a);
-    //     const bits_t MASK = (1 << (SHIFT * l)) - 1;
-        
-    //     vector<vector<match> > ret(motifs.size(), vector<match>());
+        vector<scanner_output>& hits(bits_t code){
+            return hits[code];
+        }
 
-    //     vector<size_t> hits(motifs.size(), 0);
-    //     size_t matrices_left = motifs.size();
-        
-    //     vector<size_t> bounds = preprocess_seq(s);
-        
-    //     // Scanning
-    //     for (size_t seq_i = 0; seq_i < bounds.size(); ){
-    //         size_t start = bounds[seq_i];
-    //         ++seq_i;
-    //         size_t end = bounds[seq_i];
-    //         ++seq_i;
-            
-            
-    //         // sequence is very short
-    //         if (end - start < l){
-                
-    //             bits_t code = 0;
-    //             for (size_t i = start; i < end; ++i)
-    //                 code = (code << SHIFT) + alphabet_map[s[i]];
-                
-    //             for (size_t i = end - start; i < l - 1; ++ i){
-    //                 code = (code << SHIFT) & MASK;  // dummy character to the end of code
-    //             }
-                
-                
-    //             for (size_t i = start; i < end; ++i)
-    //                 if (!window_hits[code].empty())
-    //                 {
-    //                     code = (code << SHIFT) & MASK;  // dummy character to the end of code
-                        
-    //                     for (auto y = window_hits[code].begin(); y != window_hits[code].end(); ++y)
-    //                     {
-    //                         if (y->full && motifs[y->matrix].size() <= end - i) // only sufficiently short hits are considered
-    //                         {
-    //                             if (hits[y->matrix] < max_hits){
-    //                                 ret[y->matrix].push_back(match{i,y->score});
-    //                                 hits[y->matrix]++;
-    //                                 if (hits[y->matrix] == max_hits){
-    //                                     matrices_left--;
-    //                                     if (matrices_left == 0){
-    //                                         return ret;
-    //                                     }
-    //                                 }
-    //                             }
-    //                         }
-    //                     }
-    //                 }
-    //             }
-    //         // sequence is long enough that we have at least one "proper" scanning step
-    //         else {
-    //             // Initialise scanner state
-    //             bits_t code = 0;
-    //             for (size_t i = start; i < start + l - 1; ++i){
-    //                 code = (code << SHIFT) + alphabet_map[s[i]];
-    //             }
-                
-    //             // Actual scanning for the 'middle' of the sequence
-    //             for (size_t i = start; i < end - l + 1; ++i)
-    //             {
-    //                 code = ((code << SHIFT) + alphabet_map[s[i + l - 1]]) & MASK;
+        void add_hit(size_t matrix, size_t pos, double score){
+            results[matrix].push_back(match{pos,score});
+        }
 
-    //                 if (!window_hits[code].empty())
-    //                 {
-    //                     for (auto y = window_hits[code].begin(); y != window_hits[code].end(); ++y)
-    //                     {
-    //                         if (y->full) // A Hit for a matrix of length <= q
-    //                         {
-    //                                 if (hits[y->matrix] < max_hits){
-    //                                 ret[y->matrix].push_back(match{i,y->score});
-    //                                 hits[y->matrix]++;
-    //                                 if (hits[y->matrix] == max_hits){
-    //                                     matrices_left--;
-    //                                     if (matrices_left == 0){
-    //                                         return ret;
-    //                                     }
-    //                                 }
-    //                             }
+        void clean_up(){}
 
-    //                             continue;
-    //                         }
-    //                         if (i - start >= motifs[y->matrix].window_pos() && i + motifs[y->matrix].size() - motifs[y->matrix].window_pos() <= end) // A possible hit for a longer matrix. Don't check if matrix can't be positioned entirely on the sequence here
-    //                         {
-    //                             double score;
-    //                             bool m;
+        vector<vector<match>> get_results(){
+            return results;
+        }
 
-    //                             if (hits[y->matrix] < max_hits){
 
-    //                                 std::tie(m,score) = motifs[y->matrix].check_hit(s, alphabet_map, i, y->score);
+    private:
+        const std::vector<std::vector<scanner_output>>& hits;
+        std::vector<std::vector<match>> results;
 
-    //                                 if (m){
-    //                                     ret[y->matrix].push_back(match{i - motifs[y->matrix].window_pos(),score});
-    //                                     hits[y->matrix]++;
-    //                                     if (hits[y->matrix] == max_hits){
-    //                                         matrices_left--;
-    //                                         if (matrices_left == 0){
-    //                                             return ret;
-    //                                         }
-    //                                     }
-    //                                 }
-    //                             }
-    //                         }
-    //                     }
-    //                 }
-    //             }
-            
-    //             // possible hits for matrices shorter than l near the end of current interval
-    //             for (size_t i = end - l + 1; i < end; ++i)
-    //             {
-    //                 code = (code << SHIFT) & MASK;  // dummy character to the end of code
-            
-    //                 if (!window_hits[code].empty())
-    //                 {
-                
-    //                     for (auto y = window_hits[code].begin(); y != window_hits[code].end(); ++y)
-    //                     {
-    //                         if (y->full && motifs[y->matrix].size() < end - i) // only sufficiently short hits are considered
-    //                         {
-    //                             if (hits[y->matrix] < max_hits){
-    //                                 ret[y->matrix].push_back(match{i,y->score});
-    //                                 hits[y->matrix]++;
-    //                                 if (hits[y->matrix] == max_hits){
-    //                                     matrices_left--;
-    //                                     if (matrices_left == 0){
-    //                                         return ret;
-    //                                     }
-    //                                 }
-    //                             }
-    //                         }
-    //                     }
-    //                 }
-    //             }
-    //         } 
-    //     }
-        
-    //     return ret;
-    // }
+    };
+
+    std::vector<std::vector<scan::match> > Scanner::scan(const std::string& s){
+        MH match_handler(motifs.size(), window_hits);
+        process_matches<MH> (s, match_handler);
+        return match_handler.get_results();
+    }
+
 
 } // namespace scan
 } // namespace MOODS

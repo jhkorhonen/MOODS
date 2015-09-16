@@ -59,7 +59,7 @@ print "Computing background:", end - start
 # log-odds transformation for matrices
 log_odds_matrices = [MOODS.tools.log_odds(m, bg, 1) for m in matrices] + [MOODS.tools.log_odds(m, bg, 1) for m in rc_matrices]
 # thresholds computed from p-value
-thresholds = [MOODS.tools.threshold_from_p(m, bg, 0.00001) for m in log_odds_matrices]
+thresholds = [MOODS.tools.threshold_from_p(m, bg, 0.0001) for m in log_odds_matrices]
 
 start = time.clock()
 
@@ -88,7 +88,7 @@ for (matrix,matrix_name,result) in zip(matrices, matrix_names, results):
         hitseq = seq[pos:pos+l]
         print matrix_name + '|' + str(pos) + '|' + strand + '|' + hitseq + '|'  + str(r[1])
 
-# for i, m in zip(range(len(matches)), matches):
+# for i, m in zip(range(len(results)), results):
 #     print "Hits for", i, ":", len(m)
 
 print "Total time:", time.clock() - total
