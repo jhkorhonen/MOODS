@@ -28,8 +28,7 @@ namespace MOODS { namespace scan{
                         const std::vector<double> thresholds);
 
         std::vector<std::vector<scan::match> > scan(const std::string& s);
-
-        // std::vector<std::vector<scan::match> > scan(const std::string& s, size_t max_hits);
+        std::vector<std::vector<scan::match> > scan_max_hits(const std::string& s, size_t max_hits);
 
     private:
         // std::vector<MOODS::scan::Motif> motifs;
@@ -42,7 +41,7 @@ namespace MOODS { namespace scan{
 
         void initialise_hit_table();
         std::vector<size_t> preprocess_seq(const std::string& s); 
-        template<typename T> void process_matches(const std::string& s, const T& match_handler);        
+        template<typename T> void process_matches(const std::string& s, T& match_handler);        
     };
 }}
 

@@ -144,9 +144,10 @@ namespace MOODS { namespace scan{
     }
 
     
-    // std::vector<std::vector<match> > Scanner::scan(const std::string& s)
+    // the template for various scan functions
+    // the match_handler handles the actual logic of processing matches
     template<typename T> 
-    void Scanner::process_matches(const std::string& s, const T& match_handler)
+    void Scanner::process_matches(const std::string& s, T& match_handler)
     {
 
         if (!initialised){
@@ -253,32 +254,27 @@ namespace MOODS { namespace scan{
                 }
             } 
         }
-        
-        return ret;
     }
 
-    // match_handler
-    //     bool has_hits(code)
-    //     auto(container) hits(code)
-    //     void add_hit(matrix, pos, score)
-    //     void
 
-    class MH{
+    // basic match handler
+    // stores matches and returns all of them 
+    class AllHitsMH{
     public:
-        MH(size_t motifs, const std::vector<std::vector<scanner_output>>& _hits) : hits(_hits)
+        AllHitsMH(size_t motifs, std::vector<std::vector<scanner_output>>& _hits) : window_hits(_hits)
            {
             results = vector<vector<match> >(motifs, vector<match>());
            }
 
         bool has_hits(bits_t code){
-            return !hits[code].empty();
+            return !window_hits[code].empty();
         }
 
         vector<scanner_output>& hits(bits_t code){
-            return hits[code];
+            return window_hits[code];
         }
 
-        void add_hit(size_t matrix, size_t pos, double score){
+        void add_match(size_t matrix, size_t pos, double score){
             results[matrix].push_back(match{pos,score});
         }
 
@@ -288,18 +284,82 @@ namespace MOODS { namespace scan{
             return results;
         }
 
-
     private:
-        const std::vector<std::vector<scanner_output>>& hits;
+        std::vector<std::vector<scanner_output>>& window_hits;
         std::vector<std::vector<match>> results;
-
     };
 
     std::vector<std::vector<scan::match> > Scanner::scan(const std::string& s){
-        MH match_handler(motifs.size(), window_hits);
-        process_matches<MH> (s, match_handler);
+        AllHitsMH match_handler(motifs.size(), window_hits);
+        process_matches<AllHitsMH> (s, match_handler);
         return match_handler.get_results();
     }
+
+    class MaxHitsMH{
+    public:
+        MaxHitsMH(size_t motifs, std::vector<std::vector<scanner_output>>& _hits, size_t _max_hits)
+           {
+            // window_hits = _hits; // copy?
+            results = vector<vector<match> >(motifs, vector<match>());
+            max_hits = _max_hits;
+
+            to_clean = vector<size_t>();
+            needs_cleaning = false;
+           }
+
+        bool has_hits(bits_t code){
+            return !window_hits[code].empty();
+        }
+
+        vector<scanner_output>& hits(bits_t code){
+            return window_hits[code];
+        }
+
+        void add_match(size_t matrix, size_t pos, double score){
+            results[matrix].push_back(match{pos,score});
+            if (results[matrix].size() >= max_hits){
+                needs_cleaning = true;
+                to_clean.push_back(matrix);
+            }
+        }
+
+        void clean_up(){
+            if (needs_cleaning){
+                for (size_t code = 0; code < window_hits.size(); ++code){
+                    for (size_t i = 0; i < to_clean.size(); ++i){
+                        size_t matrix = to_clean[i];
+                        for (auto y = window_hits[code].begin(); y < window_hits[code].end(); ++y){
+                            if (y->matrix == matrix){
+                                    window_hits[code].erase(y);
+                                    break;
+                            }
+                        }
+                    }
+                }
+                needs_cleaning = false;
+                to_clean = vector<size_t>();
+            }
+
+        }
+
+        vector<vector<match>> get_results(){
+            return results;
+        }
+
+    private:
+        std::vector<std::vector<scanner_output>> window_hits;
+        std::vector<std::vector<match>> results;
+        bool needs_cleaning;
+        std::vector<size_t> to_clean;
+        size_t max_hits;
+    };
+
+    std::vector<std::vector<scan::match> > Scanner::scan_max_hits(const std::string& s, size_t max_hits){
+        MaxHitsMH match_handler(motifs.size(), window_hits, max_hits);
+        process_matches<MaxHitsMH> (s, match_handler);
+        return match_handler.get_results();
+    }
+
 
 
 } // namespace scan
