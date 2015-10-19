@@ -58,11 +58,6 @@ namespace MOODS { namespace scan{
 
         this->initialise_hit_table();
     }
-
-    // void Scanner::set_motifs(const std::vector<MOODS::scan::Motif>& motifs){
-    //     this->motifs = motifs;
-    //     this->initialise_hit_table();
-    // }
     
     void Scanner::set_motifs(const std::vector<score_matrix>& matrices,
                         const std::vector<double>& bg,
@@ -219,7 +214,8 @@ namespace MOODS { namespace scan{
                                 match_handler.add_match(y.matrix, i, y.score);
                                 continue;
                             }
-                            if (i - start >= motifs[y.matrix]->window_pos() && i + motifs[y.matrix]->size() - motifs[y.matrix]->window_pos() <= end) // A possible hit for a longer matrix. Don't check if matrix can't be positioned entirely on the sequence here
+                            // A possible hit for a longer matrix. Don't check if matrix can't be positioned entirely on the sequence here
+                            if (i - start >= motifs[y.matrix]->window_pos() && i + motifs[y.matrix]->size() - motifs[y.matrix]->window_pos() <= end)
                             {
                                 double score;
                                 bool m;
@@ -289,7 +285,7 @@ namespace MOODS { namespace scan{
         std::vector<std::vector<match>> results;
     };
 
-    std::vector<std::vector<scan::match> > Scanner::scan(const std::string& s){
+    std::vector<std::vector<match> > Scanner::scan(const std::string& s){
         AllHitsMH match_handler(motifs.size(), window_hits);
         process_matches<AllHitsMH> (s, match_handler);
         return match_handler.get_results();
@@ -299,7 +295,7 @@ namespace MOODS { namespace scan{
     public:
         MaxHitsMH(size_t motifs, std::vector<std::vector<scanner_output>>& _hits, size_t _max_hits)
            {
-            // window_hits = _hits; // copy?
+            window_hits = _hits; // copy?
             results = vector<vector<match> >(motifs, vector<match>());
             max_hits = _max_hits;
 
@@ -354,7 +350,7 @@ namespace MOODS { namespace scan{
         size_t max_hits;
     };
 
-    std::vector<std::vector<scan::match> > Scanner::scan_max_hits(const std::string& s, size_t max_hits){
+    std::vector<std::vector<match> > Scanner::scan_max_hits(const std::string& s, size_t max_hits){
         MaxHitsMH match_handler(motifs.size(), window_hits, max_hits);
         process_matches<MaxHitsMH> (s, match_handler);
         return match_handler.get_results();

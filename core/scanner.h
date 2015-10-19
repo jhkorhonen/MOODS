@@ -3,7 +3,6 @@
 
 #include "moods.h"
 #include "motif.h"
-#include "moods_scan.h"
 #include "moods_misc.h"
 
 #include <memory>
@@ -27,8 +26,8 @@ namespace MOODS { namespace scan{
                         const std::vector<double>& bg,
                         const std::vector<double> thresholds);
 
-        std::vector<std::vector<scan::match> > scan(const std::string& s);
-        std::vector<std::vector<scan::match> > scan_max_hits(const std::string& s, size_t max_hits);
+        std::vector<std::vector<match> > scan(const std::string& s);
+        std::vector<std::vector<match> > scan_max_hits(const std::string& s, size_t max_hits);
 
     private:
         // std::vector<MOODS::scan::Motif> motifs;
