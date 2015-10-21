@@ -3,12 +3,14 @@
 #include "moods.h"
 #include "moods_scan.h"
 #include "moods_misc.h"
+#include "match_types.h"
 #include "motif.h"
 #include "scanner.h"
 
 using std::vector;
 using std::string;
 using std::size_t;
+
 
 namespace MOODS { namespace scan{
 
@@ -34,15 +36,5 @@ namespace MOODS { namespace scan{
         auto results = scanner.scan(seq);
         return results;
     }
-
-    // void variant_matches_recursive(std::vector<std::vector<match>> results, ...,
-    //                                scanner& scanner, const std::string& seq, const std::vector<variant> variants){
-        
-    // }
-
-    std::vector<std::vector<match_with_variant>> variant_matches(MOODS::scan::Scanner& scanner, const std::string& seq, const std::vector<variant> variants){
-        return vector<vector<match_with_variant>>();
-    }
-    
 }}
 

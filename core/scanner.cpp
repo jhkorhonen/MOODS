@@ -10,6 +10,7 @@
 #include <utility>
 #include <tuple>
 #include <memory>
+#include <iostream>
 
 #include "moods.h"
 #include "scanner.h"
@@ -19,6 +20,7 @@
 using std::vector;
 using std::size_t;
 using std::unique_ptr;
+using std::cout;
 
 
 namespace MOODS { namespace scan{
@@ -72,6 +74,7 @@ namespace MOODS { namespace scan{
             else {
                 motifs.emplace_back(new MotifH(matrices[i], bg, l, thresholds[i], a));
             }
+            this->max_motif_size = std::max(this->max_motif_size, motifs.back()->size());
         }
         
         this->initialise_hit_table();
@@ -355,6 +358,114 @@ namespace MOODS { namespace scan{
         process_matches<MaxHitsMH> (s, match_handler);
         return match_handler.get_results();
     }
+
+
+    void Scanner::variant_matches_recursive(std::vector<std::vector<match_with_variant>>& results, const state& current,
+                                            const std::string& seq, const std::vector<variant> variants){
+
+
+        // this probably fails if there is a deletion at the start of the sequence
+        size_t first_required_index = current.variant_start_pos + variants[current.vs.front()].modified_seq.size() - 1;         
+        size_t last_required_index = current.prefix.size() - variants[current.vs.back()].modified_seq.size();
+
+        size_t remaining = 0;
+        if (current.prefix.size() - first_required_index < max_motif_size)
+            remaining = max_motif_size - (current.prefix.size() - first_required_index);
+
+
+        // first, we get modified hits for the current set of active sequence variants
+
+        string current_seq = current.prefix + seq.substr(variants[current.vs.back()].end_pos, remaining);
+
+
+        cout << current_seq << "\n";
+
+        for (size_t i = 0; i < first_required_index; ++i){
+            cout << " ";
+        }
+        cout << "x\n";
+        for (size_t i = 0; i < last_required_index; ++i){
+            cout << " ";
+        }
+        cout << "x\n";
+
+        cout << remaining << "\n";
+
+        vector<vector<match>> current_results = this->scan(current_seq);
+        
+        for (size_t motif = 0; motif < current_results.size(); ++motif){
+            for (size_t i = 0; i < current_results[motif].size(); ++i){
+                match m = current_results[motif][i];
+
+                if (m.pos + this->motifs[motif]->size() >= first_required_index && m.pos <= last_required_index) {
+                    if (m.pos < current.variant_start_pos){
+                        results[motif].push_back(match_with_variant{m.pos + current.seq_start_pos,m.score,current.vs,true});
+                    }
+                    else {
+                        results[motif].push_back(match_with_variant{m.pos - current.variant_start_pos,m.score,current.vs,false});
+                    }
+                }
+            }    
+        }
+
+        // second, recursive call for each possible variant that can follow the current last variant
+
+        for (size_t next_variant = current.vs.back() + 1; next_variant < variants.size(); ++next_variant){
+
+            variant cv = variants[current.vs.back()];
+            variant nv = variants[next_variant];
+
+            if (nv.start_pos - cv.end_pos >= remaining){
+                break;
+            }
+
+            if ( (cv.end_pos < nv.start_pos) || (cv.end_pos == nv.start_pos && ( cv.start_pos < cv.end_pos || nv.start_pos < nv.end_pos  ))  ){
+
+                string next_prefix = current.prefix + seq.substr(cv.end_pos, nv.start_pos - cv.end_pos) + nv.modified_seq;
+                vector<size_t> next_variants = current.vs;
+                next_variants.push_back(next_variant);
+
+                state next = {next_variants, next_prefix, current.seq_start_pos, current.variant_start_pos};
+
+                this->variant_matches_recursive(results, next, seq, variants);
+            }
+        }        
+    }
+
+
+    std::vector<std::vector<match_with_variant>> Scanner::variant_matches(const std::string& seq, const std::vector<variant> variants){
+        
+        vector<vector<match_with_variant>> results(this->size(), vector<match_with_variant>());
+
+        for (size_t i = 0; i < variants.size(); ++i){
+            vector<size_t> next_variants(1, i);
+            size_t prefix_start = 0;
+            size_t prefix_length = 0;
+            if (variants[i].start_pos >= max_motif_size-1){
+                prefix_start = variants[i].start_pos - max_motif_size + 1;
+                prefix_length = max_motif_size - 1;
+            }
+            else {
+                prefix_start = 0;
+                prefix_length = variants[i].start_pos;
+            }
+
+            string next_prefix = seq.substr(prefix_start, prefix_length) + variants[i].modified_seq;
+
+            state s = {vector<size_t>(1,i), // active variants
+                       next_prefix, // prefix string 
+                       //next_prefix.size()-1,
+                       prefix_start, // seq position where prefix starts
+                       prefix_length // first position in prefix that is from the modified string 
+                      };
+
+            this->variant_matches_recursive(results, s, seq, variants);
+        }
+
+        return results;
+
+    }
+    
 
 
 

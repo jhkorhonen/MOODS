@@ -5,6 +5,7 @@
 
 #include "moods.h"
 #include "scanner.h"
+#include "match_types.h"
 
 namespace MOODS { namespace scan{
     
@@ -23,11 +24,6 @@ namespace MOODS { namespace scan{
                                             const std::vector<double> thresholds,
                                             unsigned int window_size,
                                             const std::vector<std::string>& alphabet);
-
-    std::vector<std::vector<match_with_variant>> variant_matches(MOODS::scan::Scanner& scanner,
-                                                       const std::string& seq,
-                                                       const std::vector<variant> variants);
-    
 
 }}
 
