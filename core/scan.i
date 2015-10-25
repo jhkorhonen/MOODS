@@ -12,6 +12,7 @@
 namespace std {
     %template(vector_double) vector<double>;
     %template(vector_uchar) vector<unsigned char>;
+    %template(vector_size_t) vector<size_t>;
     %template(vector_vector_double) vector<vector<double> >;
     %template(vector_vector_vector_double) vector<vector<vector<double> > >;
     %template(vector_match) vector<match>;
@@ -20,8 +21,6 @@ namespace std {
     %template(vector_variant) vector<variant>;
     %template(vector_match_variant) vector<match_with_variant>;
     %template(vector_vector_match_variant) vector<vector<match_with_variant> >;
-
-
 };
 
 %include "moods.h"

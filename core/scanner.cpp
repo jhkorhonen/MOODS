@@ -422,7 +422,7 @@ namespace MOODS { namespace scan{
             if ( (cv.end_pos < nv.start_pos) || (cv.end_pos == nv.start_pos && ( cv.start_pos < cv.end_pos || nv.start_pos < nv.end_pos  ))  ){
 
                 string next_prefix = current.prefix + seq.substr(cv.end_pos, nv.start_pos - cv.end_pos) + nv.modified_seq;
-                vector<size_t> next_variants = current.vs;
+                auto next_variants = current.vs;
                 next_variants.push_back(next_variant);
 
                 state next = {next_variants, next_prefix, current.seq_start_pos, current.variant_start_pos};
@@ -438,7 +438,6 @@ namespace MOODS { namespace scan{
         vector<vector<match_with_variant>> results(this->size(), vector<match_with_variant>());
 
         for (size_t i = 0; i < variants.size(); ++i){
-            vector<size_t> next_variants(1, i);
             size_t prefix_start = 0;
             size_t prefix_length = 0;
             if (variants[i].start_pos >= max_motif_size-1){
