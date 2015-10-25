@@ -19,6 +19,11 @@ namespace MOODS { namespace tools{
     // min / max
     double max_score(const score_matrix &mat);
     double min_score(const score_matrix &mat);
+
+    // temp high-order versions
+    double max_score(const score_matrix &mat, size_t a);
+    double min_score(const score_matrix &mat, size_t a);
+    double threshold_from_p(const score_matrix &mat, const std::vector<double> &bg, const double &p, size_t a);
 }}
 
 #endif

@@ -9,6 +9,7 @@
 
 #include "moods.h"
 #include "moods_tools.h"
+#include "moods_misc.h"
 
 #include <climits>
 
@@ -239,6 +240,173 @@ double min_score(const score_matrix &mat)
     return ret;
 }
 
+double max_score(const score_matrix &mat, size_t a){
+
+    size_t rows = mat.size();
+    size_t cols = mat[0].size();
+
+    unsigned int q = MOODS::misc::q_gram_size(rows, a);
+
+    const bits_t SHIFT = MOODS::misc::shift(a);
+    const bits_t Q_CODE_SIZE  =  (1 << (SHIFT * (q-1)));
+    const bits_t Q_MASK = Q_CODE_SIZE - 1;
+
+    vector<double> p_scores(Q_CODE_SIZE, 0);
+        
+    for (unsigned int i = 0; i < cols; ++i){
+        vector<double> p_scores_n(Q_CODE_SIZE, -std::numeric_limits<double>::infinity());
+        
+        for (unsigned int j = 0; j < rows; ++j){
+            p_scores_n[j & Q_MASK] = std::max(mat[j][i] + p_scores[j >> SHIFT], p_scores_n[j & Q_MASK]);
+        }
+        p_scores = p_scores_n;
+    }
+
+    double best = -std::numeric_limits<double>::infinity();
+    for (size_t i = 0; i < p_scores.size(); ++i){
+        best = std::max(best, p_scores[i]);
+    }
+
+    return best;
+}
+
+double min_score(const score_matrix &mat, size_t a){
+
+    size_t rows = mat.size();
+    size_t cols = mat[0].size();
+
+    unsigned int q = MOODS::misc::q_gram_size(rows, a);
+
+    const bits_t SHIFT = MOODS::misc::shift(a);
+    const bits_t Q_CODE_SIZE  =  (1 << (SHIFT * (q-1)));
+    const bits_t Q_MASK = Q_CODE_SIZE - 1;
+
+    vector<double> p_scores(Q_CODE_SIZE, 0);
+        
+    for (unsigned int i = 0; i < cols; ++i){
+        vector<double> p_scores_n(Q_CODE_SIZE, std::numeric_limits<double>::infinity());
+        
+        for (unsigned int j = 0; j < rows; ++j){
+            p_scores_n[j & Q_MASK] = std::min(mat[j][i] + p_scores[j >> SHIFT], p_scores_n[j & Q_MASK]);
+        }
+        p_scores = p_scores_n;
+    }
+
+    double best = std::numeric_limits<double>::infinity();
+    for (size_t i = 0; i < p_scores.size(); ++i){
+        best = std::min(best, p_scores[i]);
+    }
+    
+    return best;
+}
+
+// temporary threshold-from-p for high-order pwms
+double threshold_from_p(const score_matrix &pssm, const vector<double> &bg, const double &p, size_t a)
+{
+    const double PVAL_DP_MULTIPLIER = 1000.0;
+    
+    // Approximate the scoring matrix with integer matrix
+    // 'cos we calculate threshold with dynamic programming!
+    size_t rows = pssm.size();
+    size_t cols = pssm[0].size();
+
+    unsigned int q = MOODS::misc::q_gram_size(rows, a);
+
+    const bits_t SHIFT = MOODS::misc::shift(a);
+    const bits_t A_MASK = (1 << SHIFT) - 1;
+    const bits_t Q_CODE_SIZE  =  (1 << (SHIFT * (q-1)));
+    const bits_t Q_MASK = Q_CODE_SIZE - 1;
+
+
+
+    vector<vector<int> > mat(rows, vector<int>(cols));
+
+    int maxT = 0;
+    int minV = INT_MAX;
+
+    for (size_t i = 0; i < cols; ++i)
+    {
+        for (size_t j = 0; j < a; ++j)
+        {
+            if (pssm[j][i] > 0.0){
+                mat[j][i] = (int) ( PVAL_DP_MULTIPLIER * pssm[j][i] + 0.5 );
+            }
+            else {
+                mat[j][i] = (int) ( PVAL_DP_MULTIPLIER * pssm[j][i] - 0.5 );
+            }
+        }
+    }
+
+
+    for (size_t i = 0; i < cols; ++i)
+    {
+        int max = mat[0][i];
+        int min = max;
+        for (size_t j = 1; j < a; ++j)
+        {
+            int v = mat[j][i];
+            if (max < v)
+                max = v;
+            else if (min > v)
+                min = v;
+        }
+        maxT += max;
+        if (minV > min)
+            minV = min;
+    }
+
+    int R = maxT - cols * minV;
+
+    vector<vector<double>> table0(Q_CODE_SIZE, vector<double>(R + 1, 0.0));
+
+    for (size_t CODE = 0; CODE < (1 << (SHIFT * q)); ++CODE){
+        // TODO: check correctness later for non-DNA alphs
+        double prob = 0;
+
+        for (size_t i = 0; i < q; ++i){
+            prob += bg[(CODE >> (q - i - 1)) & A_MASK];
+        }
+
+        table0[CODE & Q_MASK][mat[CODE][0] - minV] = prob;
+    }
+
+    for (size_t i = 1; i < cols; ++i)
+    {
+        vector<vector<double>> table1(Q_CODE_SIZE, vector<double>(R + 1, 0.0));
+        for (size_t CODE = 0; CODE < (1 << (SHIFT * q)); ++CODE)
+        {
+            bits_t CODE_PREFIX = (CODE >> SHIFT) & Q_MASK;
+            bits_t CODE_SUFFIX = CODE & Q_MASK;
+            bits_t CHAR = CODE & A_MASK;
+            int s = mat[CODE][i] - minV;
+            for (int r = s; r <= R; ++r)
+                table1[CODE_SUFFIX][r] += bg[CHAR] * table0[CODE_PREFIX][r - s];
+        }
+        table0 = table1;
+    }
+
+
+    vector<double> table2(R+1, 0.0);
+    for (int r = 0; r < R+1; ++r){
+        for (bits_t CODE = 0; CODE < Q_CODE_SIZE; ++CODE){
+            table2[r] += table0[CODE][r];
+        }
+    }
+
+
+    double sum = 0.0;
+
+    for (int r = R; r >= 0; --r)
+    {
+        sum += table2[r];
+        if (sum > p)
+        {
+            return (double) ((r + cols * minV + 1) / PVAL_DP_MULTIPLIER);
+        }
+    }
+
+    return (double) ((cols * minV) / PVAL_DP_MULTIPLIER);
+}
 
 
 } // namespace tools

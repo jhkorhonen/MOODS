@@ -68,11 +68,16 @@ mf = [load_adm(matrix_directory + filename) for filename in adms]
 # estimate background from the sequence file
 bg = MOODS.tools.bg_from_sequence_dna(seq,1)
 
-matrices = [MOODS.tools.log_odds(m, bg, 1) for m in mz] + [MOODS.tools.log_odds(m, bg, 1) for m in mz]
+# log-odds
+lo_pfms = [MOODS.tools.log_odds(m, bg, 1) for m in mz]
+lo_adms = [log_odds_dna_ho(m, bg) for m in mf]
+matrices =  lo_pfms + lo_adms
+
 matrix_names = pfms + adms
 
-# log-odds transformation for matrices
-thresholds = [7.5 for m in matrices]
+# threshold selection
+th = 0.000001
+thresholds = [MOODS.tools.threshold_from_p(m,bg,th) for m in lo_pfms] + [MOODS.tools.threshold_from_p(m,bg,th,4) for m in lo_adms]
 
 # scanning
 results = MOODS.scan.scan_dna(seq, matrices, bg, thresholds, 7)
@@ -85,3 +90,7 @@ for (matrix,matrix_name,result) in zip(matrices, matrix_names, results):
     for r in sorted(result, key=lambda r: r.pos):
         hitseq = seq[r.pos:r.pos+l]
         print matrix_name + '|' + str(r.pos) + '|' + hitseq + '|'  + str(r.score)
+
+print ""
+for (matrix,matrix_name,result) in zip(matrices, matrix_names, results):
+    print matrix_name + "|" + str(len(result))
