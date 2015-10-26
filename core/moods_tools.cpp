@@ -305,8 +305,6 @@ double threshold_from_p(const score_matrix &pssm, const vector<double> &bg, cons
 {
     const double PVAL_DP_MULTIPLIER = 1000.0;
     
-    // Approximate the scoring matrix with integer matrix
-    // 'cos we calculate threshold with dynamic programming!
     size_t rows = pssm.size();
     size_t cols = pssm[0].size();
 
@@ -326,13 +324,13 @@ double threshold_from_p(const score_matrix &pssm, const vector<double> &bg, cons
 
     for (size_t i = 0; i < cols; ++i)
     {
-        for (size_t j = 0; j < a; ++j)
+        for (size_t CODE = 0; CODE < rows; ++CODE)
         {
-            if (pssm[j][i] > 0.0){
-                mat[j][i] = (int) ( PVAL_DP_MULTIPLIER * pssm[j][i] + 0.5 );
+            if (pssm[CODE][i] > 0.0){
+                mat[CODE][i] = (int) ( PVAL_DP_MULTIPLIER * pssm[CODE][i] + 0.5 );
             }
             else {
-                mat[j][i] = (int) ( PVAL_DP_MULTIPLIER * pssm[j][i] - 0.5 );
+                mat[CODE][i] = (int) ( PVAL_DP_MULTIPLIER * pssm[CODE][i] - 0.5 );
             }
         }
     }
@@ -342,9 +340,9 @@ double threshold_from_p(const score_matrix &pssm, const vector<double> &bg, cons
     {
         int max = mat[0][i];
         int min = max;
-        for (size_t j = 1; j < a; ++j)
+        for (size_t CODE = 1; CODE < rows; ++CODE)
         {
-            int v = mat[j][i];
+            int v = mat[CODE][i];
             if (max < v)
                 max = v;
             else if (min > v)
@@ -357,17 +355,17 @@ double threshold_from_p(const score_matrix &pssm, const vector<double> &bg, cons
 
     int R = maxT - cols * minV;
 
-    vector<vector<double>> table0(Q_CODE_SIZE, vector<double>(R + 1, 0.0));
+    vector<vector<double>> table0(Q_CODE_SIZE, vector<double>(R + 1, 0));
 
     for (size_t CODE = 0; CODE < (1 << (SHIFT * q)); ++CODE){
         // TODO: check correctness later for non-DNA alphs
-        double prob = 0;
+        double prob = 1;
 
         for (size_t i = 0; i < q; ++i){
-            prob += bg[(CODE >> (q - i - 1)) & A_MASK];
+            prob *= bg[(CODE >> (q - i - 1)) & A_MASK];
         }
 
-        table0[CODE & Q_MASK][mat[CODE][0] - minV] = prob;
+        table0[CODE & Q_MASK][mat[CODE][0] - minV] += prob;
     }
 
     for (size_t i = 1; i < cols; ++i)

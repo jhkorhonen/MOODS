@@ -10,10 +10,11 @@
 #include "moods.h"
 #include "motif.h"
 #include "moods_misc.h"
+#include <iostream>
 
 using std::vector;
 using std::size_t;
-
+using std::cout;
 
 namespace MOODS { namespace scan{
 
@@ -108,7 +109,7 @@ size_t MotifH::window_position(const vector<double>& es){
         current_exp += es[i+l-q];
 
         if (window_scores[i] - current_exp > max_loss){
-            window_pos = i+1;
+            window_pos = i;
             max_loss = window_scores[i] - current_exp;
         }
     }
@@ -122,80 +123,13 @@ vector<double> MotifH::max_prefix_scores(){
 }
 
 vector<double> MotifH::max_suffix_scores(){
+    // std::cout << wp << " " << q << "\n";
+    // std::cout << wp+l-q+1 << " " << cols << "\n";
     return this->max_scores_b(wp+l-q+1,cols);
 }
 
-
-
-
-// struct row_comp
-// {
-//     const vector<double> *ed;
-//     bool operator() (int i, int j)
-//     {
-//         return ( (*ed)[i] > (*ed)[j] );
-//     }
-// };
-
-// vector<unsigned int> compute_lookahead_order(const vector<double> &ed, unsigned int l, unsigned int window_pos, unsigned int m)
-// {
-//     if (l >= m)
-//     {
-//         return vector<unsigned int>();
-//     }
-//     else
-//     {
-//         vector<unsigned int> order(m-l, 0);
-//         for (int i = 0; i < window_pos; ++i)
-//         {
-//             order[i] = i;
-//         }
-//         for (int i = window_pos+l; i < m; ++i)
-//         {
-//             order[i-l] = i;
-//         }
-        
-//         row_comp comp;
-//         comp.ed = &(ed);
-        
-//         std::sort(order.begin(), order.end(), comp);
-        
-//         return order;
-//     }
-// }
-
-// vector<double> compute_lookahead_scores(const score_matrix &mat, const vector<unsigned int> &order, unsigned int l, unsigned int m, unsigned int a)
-// {
-//     if (l >= m)
-//     {
-//         return vector<double>();
-//     }
-//     else
-//     {
-//         std::vector<double> scores(m-l,0);
-        
-//         double total = 0;
-//         for (int i = m-l-1; i >= 0; --i)
-//         {
-//             double max = -std::numeric_limits<double>::infinity();
-//             for (unsigned int j = 0; j < a; ++j)
-//             {
-//                 max = std::max(max, mat[j][order[i]]);
-//             }
-//             total += max;
-//             scores[i] = total;
-//         }
-//         return scores;
-//     }
-// }
-
 MotifH::MotifH (const score_matrix& matrix, const vector<double>& bg, unsigned int window_size, double threshold, unsigned int alphabet_size)
 {
-
-    for (size_t i = 0; i < matrix.size(); ++i){
-        for (size_t j = 0; j < matrix[0].size(); ++j){
-        }
-    }
 
     mat = matrix;
     T = threshold;
@@ -213,9 +147,6 @@ MotifH::MotifH (const score_matrix& matrix, const vector<double>& bg, unsigned i
     P = this->max_prefix_scores();
     S = this->max_suffix_scores();
     
-    // lookahead_order = compute_lookahead_order(ed, l, wp, m);
-    
-    // lookahead_scores = compute_lookahead_scores(mat, lookahead_order, l, m, a);
 }
 
 std::pair<bool, double> MotifH::window_match(bits_t seq, bits_t shift)
