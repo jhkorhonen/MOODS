@@ -240,6 +240,55 @@ double min_score(const score_matrix &mat)
     return ret;
 }
 
+score_matrix log_odds(const vector<vector<double>> &mat, const vector<vector<double>>& low_order_terms,
+                      const vector<double> &bg, double ps, size_t a)
+{
+    size_t rows = mat.size();
+    size_t cols = mat[0].size();
+
+    unsigned int q = MOODS::misc::q_gram_size(rows, a);
+
+    const bits_t SHIFT = MOODS::misc::shift(a);
+    const bits_t A_MASK = (1 << SHIFT) - 1;
+    const bits_t Q_CODE_SIZE  =  (1 << (SHIFT * (q-1)));
+    const bits_t Q_MASK = Q_CODE_SIZE - 1;
+
+    vector<vector<double>> ret(rows, vector<double>(cols));
+
+    // max-order terms
+    for (size_t i = 0; i < cols; ++i){
+        for (size_t CODE = 0; CODE < Q_CODE_SIZE; ++CODE){
+            double column_sum = 0;
+            for (size_t j = 0; j < a; ++j){
+                column_sum += mat[(CODE << SHIFT) | j][i] + ps*bg[j];
+            }
+            for (size_t j = 0; j < a; ++j){
+                ret[(CODE << SHIFT) | j][i] = log( (mat[(CODE << SHIFT) | j][i] + ps*bg[j]) / column_sum) - log(bg[j]);
+            }
+        }        
+    }
+
+    // lower-order terms for the first position
+
+    for (size_t r = 0; r < q-1; ++r){
+        for (size_t PCODE = 0; PCODE < 1 << (SHIFT * r); ++PCODE ){
+            double column_sum = 0;
+            for (size_t j = 0; j < a; ++j){
+                column_sum += low_order_terms[r][(PCODE << SHIFT) | j] + ps*bg[j];
+            }
+            for (size_t j = 0; j < a; ++j){
+                double lo = log( (low_order_terms[r][(PCODE << SHIFT) | j] + ps*bg[j]) / column_sum) - log(bg[j]);
+                size_t PREFIX = ((PCODE << SHIFT) | j) << (SHIFT * (q - r - 1));
+                for (size_t SCODE = 0; SCODE < 1 << (SHIFT * (q - r - 1)); ++SCODE){
+                    ret[PREFIX | SCODE][0] += lo;
+                }
+            }
+        }
+    }
+
+    return ret;
+}
+
 double max_score(const score_matrix &mat, size_t a){
 
     size_t rows = mat.size();
