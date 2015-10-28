@@ -249,9 +249,7 @@ score_matrix log_odds(const vector<vector<double>> &mat, const vector<vector<dou
     unsigned int q = MOODS::misc::q_gram_size(rows, a);
 
     const bits_t SHIFT = MOODS::misc::shift(a);
-    const bits_t A_MASK = (1 << SHIFT) - 1;
     const bits_t Q_CODE_SIZE  =  (1 << (SHIFT * (q-1)));
-    const bits_t Q_MASK = Q_CODE_SIZE - 1;
 
     vector<vector<double>> ret(rows, vector<double>(cols));
 

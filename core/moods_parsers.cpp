@@ -83,5 +83,20 @@ namespace MOODS { namespace parsers{
         return ret;
     }
 
+    vector<vector<double>> adm_log_odds(const string& filename, const vector<double> &bg,
+                                        double pseudocount, size_t a){
+        vector<vector<double>> adm = read_table(filename);
+        vector<vector<double>> mat;
+        for (size_t i = 0; i < a * a; ++i){
+            mat.push_back(adm[i]);
+        }
+        vector<vector<double>> zero_terms (1, vector<double>(a, 0));
+        for (size_t i = 0; i < a; ++i){
+            zero_terms[0][i] = adm[a * a + i][0];
+        }
+        return tools::log_odds(mat, zero_terms, bg, pseudocount, a);
+    }
+
+
 } // namespace tools
 } // namespace MOODS
