@@ -36,5 +36,50 @@ namespace MOODS { namespace scan{
         auto results = scanner.scan(seq);
         return results;
     }
+
+    std::vector<match> naive_scan_dna(const std::string& seq, const score_matrix matrix, double threshold){
+
+        vector<unsigned char> alphabet_map (256, 4);
+        
+        alphabet_map[(unsigned char)'a'] = 0;
+        alphabet_map[(unsigned char)'A'] = 0;
+        
+        alphabet_map[(unsigned char)'c'] = 1;
+        alphabet_map[(unsigned char)'C'] = 1;
+        
+        alphabet_map[(unsigned char)'g'] = 2;
+        alphabet_map[(unsigned char)'G'] = 2;
+        
+        alphabet_map[(unsigned char)'t'] = 3;
+        alphabet_map[(unsigned char)'T'] = 3; 
+
+        size_t m = matrix[0].size();
+        vector<match> results;
+
+        vector<size_t> bounds = misc::preprocess_seq(seq, 4, alphabet_map);
+        
+        // Scanning
+        for (size_t seq_i = 0; seq_i < bounds.size(); ){
+            size_t start = bounds[seq_i];
+            ++seq_i;
+            size_t end = bounds[seq_i];
+            ++seq_i;
+
+            for (size_t i = start; i + m < end + 1; ++i){
+                double score = 0;
+
+                for (size_t j = 0; j < m; ++j){
+                    score += matrix[alphabet_map[seq[i+j]]][j];
+                }
+
+                if (score >= threshold){
+                    results.push_back(match{i,score});
+                }
+
+            }
+        }
+
+        return results;
+    }
 }}
 

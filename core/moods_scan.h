@@ -25,6 +25,7 @@ namespace MOODS { namespace scan{
                                             unsigned int window_size,
                                             const std::vector<std::string>& alphabet);
 
+    std::vector<match> naive_scan_dna(const std::string& seq, const score_matrix matrix, double threshold);
 }}
 
 
