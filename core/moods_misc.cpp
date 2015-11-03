@@ -41,4 +41,35 @@ namespace MOODS { namespace misc{
         return q;   
     }
 
+    // checks a sequence for non-scan regions and returns the corresponding bounds
+    std::vector<size_t> preprocess_seq(const std::string& s, size_t a, const std::vector<unsigned char>& alphabet_map){
+        
+        vector<size_t> bounds;
+        
+        bool scannable = false;
+        unsigned char c;
+        
+        for (size_t i = 0; i < s.size(); ++i){
+            c = alphabet_map[(unsigned char)s[i]];
+            
+            if (c < a){
+                if (!scannable){
+                    scannable = true;
+                    bounds.push_back(i);
+                }
+            }
+            else {
+                if (scannable){
+                    scannable = false;
+                    bounds.push_back(i);
+                }
+            }
+        }
+        if (scannable){
+            bounds.push_back(s.size());
+        }
+        
+        return bounds;
+        
+    }
 }}

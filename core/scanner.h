@@ -58,7 +58,6 @@ namespace MOODS { namespace scan{
         unsigned int max_motif_size = 0;
 
         void initialise_hit_table();
-        std::vector<size_t> preprocess_seq(const std::string& s); 
         template<typename T> void process_matches(const std::string& s, T& match_handler);        
         void variant_matches_recursive(std::vector<std::vector<match_with_variant>>& results, const state& current,
                                                 const std::string& seq, const std::vector<variant> variants);

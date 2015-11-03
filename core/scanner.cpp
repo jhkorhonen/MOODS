@@ -109,39 +109,6 @@ namespace MOODS { namespace scan{
     }
 
     
-    // checks a sequence for non-scan regions and returns the corresponding bounds
-    std::vector<size_t> Scanner::preprocess_seq(const std::string& s){
-        
-        vector<size_t> bounds;
-        
-        bool scannable = false;
-        unsigned char c;
-        
-        for (size_t i = 0; i < s.size(); ++i){
-            c = alphabet_map[(unsigned char)s[i]];
-            
-            if (c < a){
-                if (!scannable){
-                    scannable = true;
-                    bounds.push_back(i);
-                }
-            }
-            else {
-                if (scannable){
-                    scannable = false;
-                    bounds.push_back(i);
-                }
-            }
-        }
-        if (scannable){
-            bounds.push_back(s.size());
-        }
-        
-        return bounds;
-        
-    }
-
-    
     // the template for various scan functions
     // the match_handler handles the actual logic of processing matches
     template<typename T> 
@@ -149,16 +116,13 @@ namespace MOODS { namespace scan{
     {
 
         if (!initialised){
-            // return vector<vector<match>>(0, vector<match>());
             return;
         }
 
         const bits_t SHIFT = MOODS::misc::shift(a);
         const bits_t MASK = (1 << (SHIFT * l)) - 1;
         
-        // vector<vector<match> > ret(motifs.size(), vector<match>());
-        
-        vector<size_t> bounds = preprocess_seq(s);
+        vector<size_t> bounds = misc::preprocess_seq(s, this->a, this->alphabet_map);
         
         // Scanning
         for (size_t seq_i = 0; seq_i < bounds.size(); ){
