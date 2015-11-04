@@ -246,7 +246,7 @@ score_matrix log_odds(const vector<vector<double>> &mat, const vector<vector<dou
     size_t rows = mat.size();
     size_t cols = mat[0].size();
 
-    unsigned int q = MOODS::misc::q_gram_size(rows, a);
+    size_t q = MOODS::misc::q_gram_size(rows, a);
 
     const bits_t SHIFT = MOODS::misc::shift(a);
     const bits_t Q_CODE_SIZE  =  (1 << (SHIFT * (q-1)));
@@ -286,6 +286,32 @@ score_matrix log_odds(const vector<vector<double>> &mat, const vector<vector<dou
 
     return ret;
 }
+
+score_matrix log_odds_rc(const vector<vector<double>> &mat, const vector<vector<double>>& low_order_terms,
+                      const vector<double> &bg, double ps, size_t a){
+
+    size_t q = MOODS::misc::q_gram_size(mat.size(), a);
+    size_t rows = mat.size();
+    size_t cols = mat[0].size();
+
+    vector<double> bg_rc (bg.size(), 0);
+
+    for (size_t i = 0; i < bg.size(); ++i){
+        bg_rc[bg.size() - i - 1] = bg[i];
+    }
+
+    score_matrix lo = log_odds(mat, low_order_terms, bg_rc, ps, a);
+    score_matrix rc (rows, vector<double> (cols, 0));
+
+    for (size_t i = 0; i < cols; ++i){
+        for (size_t j = 0; j < rows; ++j){
+            rc[misc::rc_tuple(j, a, q)][cols - i - 1] = lo[j][i];
+        }
+    }
+
+    return rc;
+}
+
 
 double max_score(const score_matrix &mat, size_t a){
 
