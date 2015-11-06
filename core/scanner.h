@@ -45,12 +45,12 @@ namespace MOODS { namespace scan{
             return motifs.size();
         }
 
-        std::vector<std::vector<match_with_variant>> variant_matches(const std::string& seq, const std::vector<variant> variants);
+        std::vector<std::vector<match_with_variant> > variant_matches(const std::string& seq, const std::vector<variant> variants);
 
     private:
         // std::vector<MOODS::scan::Motif> motifs;
-        std::vector<std::unique_ptr<MOODS::scan::Motif>> motifs;
-        std::vector<std::vector<scanner_output>> window_hits;
+        std::vector<std::unique_ptr<MOODS::scan::Motif> > motifs;
+        std::vector<std::vector<scanner_output> > window_hits;
         unsigned int a;
         unsigned int l;
         std::vector<unsigned char> alphabet_map;
@@ -59,7 +59,7 @@ namespace MOODS { namespace scan{
 
         void initialise_hit_table();
         template<typename T> void process_matches(const std::string& s, T& match_handler);        
-        void variant_matches_recursive(std::vector<std::vector<match_with_variant>>& results, const state& current,
+        void variant_matches_recursive(std::vector<std::vector<match_with_variant> >& results, const state& current,
                                                 const std::string& seq, const std::vector<variant> variants);
     };
 }}

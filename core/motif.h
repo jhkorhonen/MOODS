@@ -63,8 +63,8 @@ private:
     vector<double> max_suffix_scores();
 
     score_matrix mat;
-    std::vector<unsigned int> lookahead_order;
-    std::vector<double> lookahead_scores;
+    //std::vector<unsigned int> lookahead_order;
+    std::vector<std::vector<double>> lookahead_scores;
     
     unsigned int l; // window size
     unsigned int m; // length (of the underlying sequence)

@@ -87,6 +87,8 @@ size_t MotifH::window_position(const vector<double>& es){
 
     // first, we want to compute the max score in each possible window
     // m - l + 1 is the last possible windows position
+
+    // TODO: fix redundant DP steps
     vector<double> window_scores(m - l + 1, -std::numeric_limits<double>::infinity());
 
     for (unsigned int start = 0; start < m - l + 1; ++start){
