@@ -22,15 +22,14 @@ namespace MOODS { namespace scan{
 
 vector<double> MotifH::expected_scores(const vector<double> &bg){
 
-    const bits_t SHIFT = MOODS::misc::shift(a);
-    const bits_t MASK = (1 << (SHIFT)) - 1;
+    const bits_t A_MASK = (1 << (SHIFT)) - 1;
 
     vector<double> ret(cols, 0);
     for (int i = 0; i < cols; ++i){
         for (int j = 0; j < rows; ++j){
             double bg_prop = 1;
             for (unsigned int k = 0; k < q; ++k){
-                bg_prop *= bg[MASK & (j >> (SHIFT * (q - 1 - k)))];
+                bg_prop *= bg[A_MASK & (j >> (SHIFT * (q - 1 - k)))];
             }
             ret[i] += bg_prop * mat[j][i];
 
@@ -40,43 +39,48 @@ vector<double> MotifH::expected_scores(const vector<double> &bg){
     return ret;
 }
 
-vector<double> MotifH::max_scores_f(size_t start, size_t end){
-    const bits_t SHIFT = MOODS::misc::shift(a);
-    const bits_t Q_CODE_SIZE  =  (1 << (SHIFT * (q-1)));
-    const bits_t Q_MASK = Q_CODE_SIZE - 1;
+vector<vector<double>> MotifH::max_scores_f(size_t start, size_t end){
 
-    vector<double> p_scores(Q_CODE_SIZE, 0);
-        
-    for (unsigned int i = start; i < end; ++i){
-        vector<double> p_scores_n(Q_CODE_SIZE, -std::numeric_limits<double>::infinity());
-        
+    double wsize = end - start;
+    vector<vector<double>> max_scores (wsize, vector<double> (Q_CODE_SIZE, 0));
+
+    if (end > start){
         for (unsigned int j = 0; j < rows; ++j){
-            p_scores_n[j & Q_MASK] = std::max(mat[j][i] + p_scores[j >> SHIFT], p_scores_n[j & Q_MASK]);
+            max_scores[0][j & Q_MASK] = std::max(mat[j][start], max_scores[0][j & Q_MASK]);
         }
-        p_scores = p_scores_n;
+
+        for (unsigned int i = 1 ; i < wsize; ++i){
+            for (unsigned int j = 0; j < rows; ++j){
+                max_scores[i][j & Q_MASK] = std::max(mat[j][i+start] + max_scores[i-1][j >> SHIFT], max_scores[i][j & Q_MASK]);
+            }
+        }
     }
 
-    return p_scores;
+    return max_scores;
 }
 
-vector<double> MotifH::max_scores_b(size_t start, size_t end){
-    const bits_t SHIFT = MOODS::misc::shift(a);
-    const bits_t Q_CODE_SIZE  =  (1 << (SHIFT * (q-1)));
-    const bits_t Q_MASK = Q_CODE_SIZE - 1;
+vector<vector<double>> MotifH::max_scores_b(size_t start, size_t end){
+
+    double wsize = end - start;
+    vector<vector<double>> max_scores (wsize, vector<double> (Q_CODE_SIZE, 0));
+
 
     vector<double> p_scores(Q_CODE_SIZE, 0);
-        
-    for (unsigned int i = 0; i < end-start; ++i){
-        vector<double> p_scores_n(Q_CODE_SIZE, -std::numeric_limits<double>::infinity());
-        
+    if (end > start){
+
         for (unsigned int j = 0; j < rows; ++j){
-            p_scores_n[j >> SHIFT] = std::max(mat[j][end-i-1] + p_scores[j & Q_MASK], p_scores_n[j >> SHIFT]);
+            max_scores[wsize-1][j >> SHIFT] = std::max(mat[j][end-1], max_scores[wsize-1][j >> SHIFT]);
         }
-        p_scores = p_scores_n;
+
+        for (unsigned int i = 1; i < wsize; ++i){
+            
+            for (unsigned int j = 0; j < rows; ++j){
+                max_scores[wsize-i-1][j >> SHIFT] = std::max(mat[j][end-i-1] + max_scores[wsize-i][j & Q_MASK], max_scores[wsize-i-1][j >> SHIFT]);
+            }
+        }
     }
 
-    return p_scores;
-
+    return max_scores;
 }
 
 size_t MotifH::window_position(const vector<double>& es){
@@ -92,11 +96,12 @@ size_t MotifH::window_position(const vector<double>& es){
     vector<double> window_scores(m - l + 1, -std::numeric_limits<double>::infinity());
 
     for (unsigned int start = 0; start < m - l + 1; ++start){
-        vector<double> ss = this->max_scores_f(start, start + l - q - 2);
-        
-        for (unsigned int j = 0; j < ss.size(); ++j){
-            window_scores[start] = std::max(ss[j], window_scores[start]);
-        }
+        vector<double> ss = this->max_scores_f(start, start + l - q - 2).back();
+        window_scores[start] = *std::max_element(ss.begin(), ss.end());
+
+        // for (unsigned int j = 0; j < ss.size(); ++j){
+        //     window_scores[start] = std::max(ss[j], window_scores[start]);
+        // }
     }
 
     // then we just pick the best window
@@ -120,45 +125,47 @@ size_t MotifH::window_position(const vector<double>& es){
 }
 
 // prefix scores up to the window position
-vector<double> MotifH::max_prefix_scores(){
+vector<vector<double>> MotifH::max_prefix_scores(){
     return this->max_scores_f(0,wp);
 }
 
-vector<double> MotifH::max_suffix_scores(){
-    // std::cout << wp << " " << q << "\n";
-    // std::cout << wp+l-q+1 << " " << cols << "\n";
+vector<vector<double>> MotifH::max_suffix_scores(){
     return this->max_scores_b(wp+l-q+1,cols);
 }
 
 MotifH::MotifH (const score_matrix& matrix, const vector<double>& bg, unsigned int window_size, double threshold, unsigned int alphabet_size)
 {
 
-    mat = matrix;
-    T = threshold;
+    this->mat = matrix;
+    this->T = threshold;
 
-    l = window_size;
-    a = alphabet_size;
-    cols = mat[0].size();
-    rows = mat.size();
+    this->l = window_size;
+    this->a = alphabet_size;
+    this->cols = mat[0].size();
+    this->rows = mat.size();
 
-    q = MOODS::misc::q_gram_size(rows, a);
-    m = mat[0].size() + q - 1;
+    this->q = MOODS::misc::q_gram_size(rows, a);
+    this->m = mat[0].size() + q - 1;
+
+    this->SHIFT = MOODS::misc::shift(a);
+    this->MASK = (1 << (SHIFT * q)) - 1;
+    this->Q_SHIFT = SHIFT * (q-1);
+    this->Q_CODE_SIZE = 1 << Q_SHIFT;
+    this->Q_MASK = Q_CODE_SIZE - 1;
 
     vector<double> es = this->expected_scores(bg);
-    wp = this->window_position(es);
-    P = this->max_prefix_scores();
-    S = this->max_suffix_scores();
+    this->wp = this->window_position(es);
+    this->P = this->max_prefix_scores();
+    this->S = this->max_suffix_scores();
     
 }
 
 std::pair<bool, double> MotifH::window_match(bits_t seq, bits_t shift)
 {
     double score = 0;
-    bits_t SHIFT = MOODS::misc::shift(a);
-    bits_t MASK = (1 << (SHIFT * q)) - 1;
     
     if (l >= m){
-        for (unsigned int i = 0; i < cols; ++i)
+        for (size_t i = 0; i < cols; ++i)
         {
             bits_t c = MASK & (seq >> (SHIFT * (l - q - i)));
             score += mat[c][i];
@@ -166,15 +173,25 @@ std::pair<bool, double> MotifH::window_match(bits_t seq, bits_t shift)
         return std::make_pair(score >= T, score);
     }
     else {
-        for (unsigned int i = 0; i < l-q+1; ++i)
+        for (size_t i = 0; i < l-q+1; ++i)
         {
             bits_t c = MASK & (seq >> (SHIFT * (l - q - i)));
             score += mat[c][wp+i];
         }
 
-        bits_t prefix = seq >> (SHIFT * (l - q + 1)); // first q - 1 "characters"
-        bits_t suffix = seq & ((1 << (SHIFT * (q-1))) - 1); // last q - 1 "characters"
-        return std::make_pair(score + P[prefix] + S[suffix] >= T, score);
+        
+        double pot = score;
+
+        if (wp > 0){
+            bits_t prefix = seq >> (SHIFT * (l - q + 1)); // first q - 1 "characters"
+            pot += P.back()[prefix];
+        }
+        if (wp < m - l + 1){
+            bits_t suffix = seq & ((1 << (SHIFT * (q-1))) - 1); // last q - 1 "characters"
+            pot += S.front()[suffix];
+        }
+
+        return std::make_pair(pot >= T, score);
     }
     
 }
@@ -188,37 +205,76 @@ std::pair<bool, double> MotifH::check_hit(const std::string& s, const vector<uns
     // ideally we'd want to do a fancy permuted lookahead like with 0-order models
     // but for now we'll just check the positions in order...
 
-    bits_t SHIFT = MOODS::misc::shift(a);
-    bits_t MASK = (1 << (SHIFT * q)) - 1;
-
     size_t ii = window_match_pos - wp;
+    // cout << ii << "+" << wp << " " << m << " " << T << ": ";
+    bits_t BACK_CODE = 0;
+
+    // code for the last q-1 positions in the window if we will need that
+    if (wp < m - l + 1){
+        for (size_t i = 0; i < q-1; ++i){
+            BACK_CODE = ( BACK_CODE << SHIFT ) ^ alphabet_map[s[ii + wp + l - q + i + 1]];
+        }
+    }
 
     // there's some stuff before the window
     if (wp > 0){
+        double forward_threshold = T;
+
+        if (wp < m - l + 1){
+            forward_threshold -= S.front()[BACK_CODE];
+        }
+
         bits_t CODE = 0;
 
-        for (size_t i = 0; i < q-1; ++i){
-            CODE = MASK & ((CODE << SHIFT) ^ alphabet_map[s[ii + i]]);
+
+        for (size_t i = 0; i < q; ++i){
+            CODE = (CODE << SHIFT) ^ alphabet_map[s[ii + wp + i - 1]];
         }
-        for (size_t i = 0; i < wp; ++i){
-            CODE = MASK & ((CODE << SHIFT) ^ alphabet_map[s[ii + i + q - 1]]);
-            score += mat[CODE][i];
+
+        // cout << "f " << wp-1 << " " << score << " ";
+
+        score += mat[CODE][wp-1];
+
+        // this thing goes backwards
+        for (size_t i = 1; i < wp; ++i){
+
+            // cout << wp-i-1 << " " << score << " ";
+
+            if (P[wp-i-1][Q_MASK >> CODE] + score < forward_threshold){
+                // cout << "co\n";
+                return std::make_pair(false, score);
+            }
+
+            CODE = (CODE >> SHIFT) ^ (alphabet_map[s[ii + wp - i - 1]] << Q_SHIFT);
+            score += mat[CODE][wp-i-1];
         }
+
+        // cout << " ";
     }
 
     // stuff after the window
     if (wp < m - l + 1){
-        bits_t CODE = 0;
 
-        for (size_t i = wp+l-q+1; i < wp+l; ++i){
-            CODE = MASK & (CODE << SHIFT) ^ alphabet_map[s[ii + i]];
-        }
+        // oh look we already precomputed this thing
+        bits_t CODE = BACK_CODE;
+
+        // cout << "b ";
+
+        // this thing goes forwards
         for (size_t i = wp+l-q+1; i < cols; ++i){
+            // cout << i << " " << score << " ";
+
+            if (S[i-(wp+l-q+1)][CODE & Q_MASK] + score < T){
+                // cout << "co\n";
+                return std::make_pair(false, score);
+            }
+
             CODE = MASK & (CODE << SHIFT) ^ alphabet_map[s[ii + i + q - 1]];
             score += mat[CODE][i];
         }
     }
     
+    // cout << "done " << score <<  "\n";
     return std::make_pair(score >= T, score);
 }
 

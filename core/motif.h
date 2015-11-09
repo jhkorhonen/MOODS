@@ -26,7 +26,7 @@ public:
 };
 
 
-// standard 0-order PWM model
+// standard 0-order PWM
 class Motif0 : public Motif {
 private:
     score_matrix mat;
@@ -52,20 +52,18 @@ public:
 
 };
 
-// higher order model with dependencies between adjacent positions
+// high-order PWM
 class MotifH : public Motif {
 private:
     vector<double> expected_scores(const vector<double> &bg);
-    vector<double> max_scores_f(size_t start, size_t end);
-    vector<double> max_scores_b(size_t start, size_t end);
+    vector<vector<double>> max_scores_f(size_t start, size_t end);
+    vector<vector<double>> max_scores_b(size_t start, size_t end);
     size_t window_position(const vector<double>& es);
-    vector<double> max_prefix_scores();
-    vector<double> max_suffix_scores();
+    vector<vector<double>> max_prefix_scores();
+    vector<vector<double>> max_suffix_scores();
 
     score_matrix mat;
-    //std::vector<unsigned int> lookahead_order;
-    std::vector<std::vector<double>> lookahead_scores;
-    
+
     unsigned int l; // window size
     unsigned int m; // length (of the underlying sequence)
     unsigned int cols; // m - q + 1
@@ -73,8 +71,14 @@ private:
     unsigned int a; // alphabet size
     unsigned int q; // q-gram length
 
-    vector<double> P; // prefix scores
-    vector<double> S; // suffix scores for in-window testing
+    bits_t SHIFT;
+    bits_t MASK; // bit-mask of length q
+    bits_t Q_SHIFT;
+    bits_t Q_CODE_SIZE; 
+    bits_t Q_MASK; // bit-mask of length q-1
+
+    vector<vector<double>> P; // prefix scores
+    vector<vector<double>> S; // suffix scores for in-window testing
 
     
     unsigned int wp; // window position
