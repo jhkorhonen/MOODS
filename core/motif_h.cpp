@@ -10,11 +10,9 @@
 #include "moods.h"
 #include "motif.h"
 #include "moods_misc.h"
-#include <iostream>
 
 using std::vector;
 using std::size_t;
-using std::cout;
 
 namespace MOODS { namespace scan{
 
@@ -202,11 +200,7 @@ std::pair<bool, double> MotifH::check_hit(const std::string& s, const vector<uns
         return  std::make_pair(true, score); // matrix fits fully to the window, so the window score is what we wanted...
     }
     
-    // ideally we'd want to do a fancy permuted lookahead like with 0-order models
-    // but for now we'll just check the positions in order...
-
     size_t ii = window_match_pos - wp;
-    // cout << ii << "+" << wp << " " << m << " " << T << ": ";
     bits_t BACK_CODE = 0;
 
     // code for the last q-1 positions in the window if we will need that
@@ -231,25 +225,18 @@ std::pair<bool, double> MotifH::check_hit(const std::string& s, const vector<uns
             CODE = (CODE << SHIFT) ^ alphabet_map[s[ii + wp + i - 1]];
         }
 
-        // cout << "f " << wp-1 << " " << score << " ";
-
         score += mat[CODE][wp-1];
 
         // this thing goes backwards
         for (size_t i = 1; i < wp; ++i){
 
-            // cout << wp-i-1 << " " << score << " ";
-
             if (P[wp-i-1][CODE >> SHIFT] + score < forward_threshold){
-            //     // cout << "co\n";
                 return std::make_pair(false, score);
             }
 
             CODE = (CODE >> SHIFT) ^ (alphabet_map[s[ii + wp - i - 1]] << Q_SHIFT);
             score += mat[CODE][wp-i-1];
         }
-
-        // cout << " ";
     }
 
     // stuff after the window
@@ -258,14 +245,10 @@ std::pair<bool, double> MotifH::check_hit(const std::string& s, const vector<uns
         // oh look we already precomputed this thing
         bits_t CODE = BACK_CODE;
 
-        // cout << "b ";
-
         // this thing goes forwards
         for (size_t i = wp+l-q+1; i < cols; ++i){
-            // cout << i << " " << score << " ";
 
             if (S[i-(wp+l-q+1)][CODE & Q_MASK] + score < T){
-                // cout << "co\n";
                 return std::make_pair(false, score);
             }
 
@@ -273,8 +256,6 @@ std::pair<bool, double> MotifH::check_hit(const std::string& s, const vector<uns
             score += mat[CODE][i];
         }
     }
-    
-    // cout << "done " << score <<  "\n";
     return std::make_pair(score >= T, score);
 }
 

@@ -54,8 +54,8 @@ namespace MOODS { namespace scan{
         unsigned int a;
         unsigned int l;
         std::vector<unsigned char> alphabet_map;
-        bool initialised = false;
-        unsigned int max_motif_size = 0;
+        bool initialised;
+        unsigned int max_motif_size;
 
         void initialise_hit_table();
         template<typename T> void process_matches(const std::string& s, T& match_handler);        

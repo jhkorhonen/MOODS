@@ -42,7 +42,10 @@ namespace MOODS { namespace scan{
         alphabet_map[(unsigned char)'G'] = 2;
         
         alphabet_map[(unsigned char)'t'] = 3;
-        alphabet_map[(unsigned char)'T'] = 3; 
+        alphabet_map[(unsigned char)'T'] = 3;
+
+        initialised = false;
+        max_motif_size = 0;
     }
 
     Scanner::Scanner(unsigned int window_size, const std::vector<std::string>& alphabet)
@@ -58,7 +61,8 @@ namespace MOODS { namespace scan{
             }
         }
 
-        this->initialise_hit_table();
+        initialised = false;
+        max_motif_size = 0;
     }
     
     void Scanner::set_motifs(const std::vector<score_matrix>& matrices,
