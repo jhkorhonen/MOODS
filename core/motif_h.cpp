@@ -11,6 +11,8 @@
 #include "motif.h"
 #include "moods_misc.h"
 
+#include <algorithm>
+
 using std::vector;
 using std::size_t;
 
