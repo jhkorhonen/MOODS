@@ -240,8 +240,8 @@ std::pair<bool, double> MotifH::check_hit(const std::string& s, const vector<uns
 
             // cout << wp-i-1 << " " << score << " ";
 
-            if (P[wp-i-1][Q_MASK >> CODE] + score < forward_threshold){
-                // cout << "co\n";
+            if (P[wp-i-1][CODE >> SHIFT] + score < forward_threshold){
+            //     // cout << "co\n";
                 return std::make_pair(false, score);
             }
 
