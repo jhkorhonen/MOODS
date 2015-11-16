@@ -1,4 +1,10 @@
+
+#ifdef SWIGPERL
+%module "MOODS::scan"
+#else
 %module scan
+#endif
+
 
 %{
 #include "moods.h"

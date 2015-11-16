@@ -1,4 +1,9 @@
+
+#ifdef SWIGPERL
+%module "MOODS::tools"
+#else
 %module tools
+#endif
 
 %{
 #include "moods.h"

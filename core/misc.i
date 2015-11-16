@@ -1,4 +1,9 @@
+
+#ifdef SWIGPERL
+%module "MOODS::misc"
+#else
 %module misc
+#endif
 
 %include "std_string.i"
 %{
