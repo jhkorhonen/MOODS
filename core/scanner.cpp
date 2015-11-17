@@ -10,6 +10,7 @@
 #include <utility>
 #include <tuple>
 #include <memory>
+#include <algorithm>
 #include <iostream>
 
 #include "moods.h"
@@ -332,7 +333,6 @@ namespace MOODS { namespace scan{
                                             const std::string& seq, const std::vector<variant> variants){
 
 
-        // this probably fails if there is a deletion at the start of the sequence
         size_t first_required_index = current.variant_start_pos + variants[current.vs.front()].modified_seq.size() - 1;         
         size_t last_required_index = current.prefix.size() - variants[current.vs.back()].modified_seq.size();
 
@@ -340,12 +340,11 @@ namespace MOODS { namespace scan{
         if (current.prefix.size() - first_required_index < max_motif_size)
             remaining = max_motif_size - (current.prefix.size() - first_required_index);
 
-
         // first, we get modified hits for the current set of active sequence variants
 
         string current_seq = current.prefix + seq.substr(variants[current.vs.back()].end_pos, remaining);
 
-
+        cout << current.vs.back() << "\n";
         cout << current_seq << "\n";
 
         for (size_t i = 0; i < first_required_index; ++i){
@@ -365,13 +364,8 @@ namespace MOODS { namespace scan{
             for (size_t i = 0; i < current_results[motif].size(); ++i){
                 match m = current_results[motif][i];
 
-                if (m.pos + this->motifs[motif]->size() >= first_required_index && m.pos <= last_required_index) {
-                    if (m.pos < current.variant_start_pos){
-                        results[motif].push_back(match_with_variant{m.pos + current.seq_start_pos,m.score,current.vs,true});
-                    }
-                    else {
-                        results[motif].push_back(match_with_variant{m.pos - current.variant_start_pos,m.score,current.vs,false});
-                    }
+                if (m.pos + this->motifs[motif]->size() - 1 >= last_required_index && m.pos <= first_required_index) {
+                    results[motif].push_back(match_with_variant{m.pos + current.seq_start_pos,m.score,current.vs});
                 }
             }    
         }
@@ -387,7 +381,16 @@ namespace MOODS { namespace scan{
                 break;
             }
 
-            if ( (cv.end_pos < nv.start_pos) || (cv.end_pos == nv.start_pos && ( cv.start_pos < cv.end_pos || nv.start_pos < nv.end_pos  ))  ){
+            // add next variant and recurse if the next variant is compatible with the current one AND
+            // it is not a deletion at one end of the sequence
+            if (
+                 ((cv.end_pos < nv.start_pos) ||
+                  (cv.end_pos == nv.start_pos && ( cv.start_pos < cv.end_pos || nv.start_pos < nv.end_pos  )))
+                   &&
+                !((nv.start_pos == 0 && nv.modified_seq.size() == 0) ||
+                  (nv.end_pos == seq.size() && nv.modified_seq.size() == 0))
+                )
+            {
 
                 string next_prefix = current.prefix + seq.substr(cv.end_pos, nv.start_pos - cv.end_pos) + nv.modified_seq;
                 auto next_variants = current.vs;
@@ -401,36 +404,45 @@ namespace MOODS { namespace scan{
     }
 
 
-    std::vector<std::vector<match_with_variant>> Scanner::variant_matches(const std::string& seq, const std::vector<variant> variants){
+    std::vector<std::vector<match_with_variant>> Scanner::variant_matches(const std::string& seq, const std::vector<variant> _variants){
         
+        // copy and sort the variants
+        std::vector<variant> variants = _variants;
+        std::sort(variants.begin(), variants.end());
+
         vector<vector<match_with_variant>> results(this->size(), vector<match_with_variant>());
 
         for (size_t i = 0; i < variants.size(); ++i){
-            size_t prefix_start = 0;
-            size_t prefix_length = 0;
-            if (variants[i].start_pos >= max_motif_size-1){
-                prefix_start = variants[i].start_pos - max_motif_size + 1;
-                prefix_length = max_motif_size - 1;
+            // we'll skip all deletions that start at position 0 or 
+            // end at the last position 
+            // as that does not really make any sense in our framework
+            if (! ( (variants[i].start_pos == 0 && variants[i].modified_seq.size() == 0) ||
+                    (variants[i].end_pos == seq.size() && variants[i].modified_seq.size() == 0))) {
+                        size_t prefix_start = 0;
+                        size_t prefix_length = 0;
+                        if (variants[i].start_pos >= max_motif_size-1){
+                            prefix_start = variants[i].start_pos - max_motif_size + 1;
+                            prefix_length = max_motif_size - 1;
+                        }
+                        else {
+                            prefix_start = 0;
+                            prefix_length = variants[i].start_pos;
+                        }
+        
+                        string next_prefix = seq.substr(prefix_start, prefix_length) + variants[i].modified_seq;
+        
+                        state s = {vector<size_t>(1,i), // active variants
+                                   next_prefix, // prefix string 
+                                   //next_prefix.size()-1,
+                                   prefix_start, // seq position where prefix starts
+                                   prefix_length // first position in prefix that is from the modified string 
+                                  };
+        
+                        this->variant_matches_recursive(results, s, seq, variants);
             }
-            else {
-                prefix_start = 0;
-                prefix_length = variants[i].start_pos;
-            }
-
-            string next_prefix = seq.substr(prefix_start, prefix_length) + variants[i].modified_seq;
-
-            state s = {vector<size_t>(1,i), // active variants
-                       next_prefix, // prefix string 
-                       //next_prefix.size()-1,
-                       prefix_start, // seq position where prefix starts
-                       prefix_length // first position in prefix that is from the modified string 
-                      };
-
-            this->variant_matches_recursive(results, s, seq, variants);
         }
 
         return results;
-
     }
     
 
