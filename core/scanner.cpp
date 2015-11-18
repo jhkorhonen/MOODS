@@ -11,7 +11,7 @@
 #include <tuple>
 #include <memory>
 #include <algorithm>
-#include <iostream>
+
 
 #include "moods.h"
 #include "scanner.h"
@@ -21,7 +21,6 @@
 using std::vector;
 using std::size_t;
 using std::unique_ptr;
-using std::cout;
 
 
 namespace MOODS { namespace scan{
@@ -344,20 +343,6 @@ namespace MOODS { namespace scan{
 
         string current_seq = current.prefix + seq.substr(variants[current.vs.back()].end_pos, remaining);
 
-        cout << current.vs.back() << "\n";
-        cout << current_seq << "\n";
-
-        for (size_t i = 0; i < first_required_index; ++i){
-            cout << " ";
-        }
-        cout << "x\n";
-        for (size_t i = 0; i < last_required_index; ++i){
-            cout << " ";
-        }
-        cout << "x\n";
-
-        cout << remaining << "\n";
-
         vector<vector<match>> current_results = this->scan(current_seq);
         
         for (size_t motif = 0; motif < current_results.size(); ++motif){
@@ -433,7 +418,6 @@ namespace MOODS { namespace scan{
         
                         state s = {vector<size_t>(1,i), // active variants
                                    next_prefix, // prefix string 
-                                   //next_prefix.size()-1,
                                    prefix_start, // seq position where prefix starts
                                    prefix_length // first position in prefix that is from the modified string 
                                   };
