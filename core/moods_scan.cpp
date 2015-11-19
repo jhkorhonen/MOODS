@@ -3,9 +3,12 @@
 #include "moods.h"
 #include "moods_scan.h"
 #include "moods_misc.h"
+#include "moods_tools.h"
 #include "match_types.h"
 #include "motif.h"
 #include "scanner.h"
+
+#include <iostream>
 
 using std::vector;
 using std::string;
@@ -35,6 +38,87 @@ namespace MOODS { namespace scan{
         
         auto results = scanner.scan(seq);
         return results;
+    }
+
+    std::vector< std::vector< match> > scan_best_hits_dna(const std::string& seq, const std::vector<score_matrix>& matrices,
+                                                          size_t target, unsigned int MULT, size_t window_size){
+
+        vector<double> bg = tools::bg_from_sequence_dna(seq,0.01);
+        double p = target/seq.size();
+
+        vector<double> current (matrices.size(),0);
+        vector<double> upper (matrices.size(),0);
+        vector<double> lower (matrices.size(),0);
+
+        vector<bool> ok(matrices.size(),0);
+        size_t remaining = matrices.size();
+
+        for (size_t i = 0; i < matrices.size(); ++i){
+            current[i] = tools::threshold_from_p(matrices[i],bg,p);
+            upper[i] = tools::max_score(matrices[i],4);
+            lower[i] = tools::min_score(matrices[i],4);
+        }
+
+        bool done = 0;
+
+        while (remaining > 0){
+            vector<size_t> it_indices;
+            vector<score_matrix> it_matrices;
+            vector<double> it_thresholds;
+            vector<char> status (matrices.size(), '_');
+
+            for (size_t i = 0; i < matrices.size(); ++i){
+                if (!ok[i]){
+                    it_indices.push_back(i);
+                    it_matrices.push_back(matrices[i]);
+                    it_thresholds.push_back(current[i]);
+                }
+            }
+
+            Scanner scanner(window_size);
+            scanner.set_motifs(it_matrices, bg, it_thresholds);
+        
+            vector<size_t> results = scanner.counts_max_hits(seq, MULT*target);
+
+            for (size_t j = 0; j < it_indices.size(); ++j){
+                size_t i = it_indices[j];
+                size_t hits = results[j];
+                double threshold = current[i];
+                if (hits >= target && hits < MULT*target){
+                    ok[i] = 1;
+                    remaining--;
+                }
+                // too many hits, INCREASE the threshold & lower bound
+                else if (hits >= MULT*target){
+                    status[i] = 'H';
+                    current[i] = (upper[i] + threshold)/2.0;
+                    lower[i] = threshold;
+                }
+                // too few this, DECREASE the threshold & upper bound
+                else{
+                    status[i] = 'L';
+                    current[i] = (lower[i] + threshold)/2.0;
+                    upper[i] = threshold;
+                }
+                // failsafe
+                if (current[i] == threshold && !ok[i]){
+                    ok[i] = 1;
+                    current[i] = upper[i];
+                    remaining--;
+                }
+            }
+
+            for (size_t i = 0; i < matrices.size(); ++i){
+                std::cout << status[i];
+            }
+            std::cout << "\n";
+        }
+
+        Scanner scanner(window_size);
+        scanner.set_motifs(matrices, bg, current);
+        
+        return scanner.scan(seq); 
+
     }
 
     std::vector<match> naive_scan_dna(const std::string& seq, const score_matrix matrix, double threshold){

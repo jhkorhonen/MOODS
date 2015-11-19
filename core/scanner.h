@@ -38,6 +38,7 @@ namespace MOODS { namespace scan{
 
         std::vector<std::vector<match> > scan(const std::string& s);
         std::vector<std::vector<match> > scan_max_hits(const std::string& s, size_t max_hits);
+        std::vector<size_t> counts_max_hits(const std::string& s, size_t max_hits);
 
         size_t size(){
             if (!initialised)

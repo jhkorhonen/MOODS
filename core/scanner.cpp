@@ -327,6 +327,71 @@ namespace MOODS { namespace scan{
         return match_handler.get_results();
     }
 
+    class CountMaxHitsMH{
+    public:
+        CountMaxHitsMH(size_t motifs, std::vector<std::vector<scanner_output>>& _hits, size_t _max_hits)
+           {
+            window_hits = _hits; // copy?
+            results = vector<size_t>(motifs, 0);
+            max_hits = _max_hits;
+
+            to_clean = vector<size_t>();
+            needs_cleaning = false;
+           }
+
+        bool has_hits(bits_t code){
+            return !window_hits[code].empty();
+        }
+
+        vector<scanner_output>& hits(bits_t code){
+            return window_hits[code];
+        }
+
+        void add_match(size_t matrix, size_t pos, double score){
+            results[matrix]++;
+            if (results[matrix] >= max_hits){
+                needs_cleaning = true;
+                to_clean.push_back(matrix);
+            }
+        }
+
+        void clean_up(){
+            if (needs_cleaning){
+                for (size_t code = 0; code < window_hits.size(); ++code){
+                    for (size_t i = 0; i < to_clean.size(); ++i){
+                        size_t matrix = to_clean[i];
+                        for (auto y = window_hits[code].begin(); y < window_hits[code].end(); ++y){
+                            if (y->matrix == matrix){
+                                    window_hits[code].erase(y);
+                                    break;
+                            }
+                        }
+                    }
+                }
+                needs_cleaning = false;
+                to_clean = vector<size_t>();
+            }
+
+        }
+
+        vector<size_t> get_results(){
+            return results;
+        }
+
+    private:
+        std::vector<std::vector<scanner_output>> window_hits;
+        std::vector<size_t> results;
+        bool needs_cleaning;
+        std::vector<size_t> to_clean;
+        size_t max_hits;
+    };
+
+    std::vector<size_t> Scanner::counts_max_hits(const std::string& s, size_t max_hits){
+        CountMaxHitsMH match_handler(motifs.size(), window_hits, max_hits);
+        process_matches<CountMaxHitsMH> (s, match_handler);
+        return match_handler.get_results();
+    }
+
 
     void Scanner::variant_matches_recursive(std::vector<std::vector<match_with_variant>>& results, const state& current,
                                             const std::string& seq, const std::vector<variant> variants){
