@@ -28,7 +28,9 @@ namespace MOODS { namespace scan{
     std::vector< std::vector< match> > scan_best_hits_dna(const std::string& seq,
                                                           const std::vector<score_matrix>& matrices,
                                                           size_t target,
-                                                          unsigned int MULT = 5,
+                                                          int iterations = 10,
+                                                          unsigned int MULT = 3,
+                                                          size_t LIMIT_MULT = 10,
                                                           size_t window_size = 7);
         
     std::vector<match> naive_scan_dna(const std::string& seq, const score_matrix matrix, double threshold);

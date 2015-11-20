@@ -8,8 +8,6 @@
 #include "motif.h"
 #include "scanner.h"
 
-#include <iostream>
-
 using std::vector;
 using std::string;
 using std::size_t;
@@ -40,11 +38,17 @@ namespace MOODS { namespace scan{
         return results;
     }
 
-    std::vector< std::vector< match> > scan_best_hits_dna(const std::string& seq, const std::vector<score_matrix>& matrices,
-                                                          size_t target, unsigned int MULT, size_t window_size){
+    std::vector< std::vector< match> > scan_best_hits_dna(const std::string& seq, const std::vector<score_matrix>& matrices, size_t target,
+                                                          int iterations, unsigned int MULT, size_t LIMIT_MULT, size_t window_size){
 
         vector<double> bg = tools::bg_from_sequence_dna(seq,0.01);
-        double p = target/seq.size();
+
+        // try to guess a good initial  threshold; this works quite often
+        double p = ((1 + 2.0*MULT) / 3.0) * target/ seq.size();
+
+        if (LIMIT_MULT < MULT){
+            MULT = LIMIT_MULT;
+        }
 
         vector<double> current (matrices.size(),0);
         vector<double> upper (matrices.size(),0);
@@ -61,7 +65,13 @@ namespace MOODS { namespace scan{
 
         bool done = 0;
 
+        int iteration = 0;
+
+
+        // binary search for all matrices in parallel
         while (remaining > 0){
+            iteration++;
+
             vector<size_t> it_indices;
             vector<score_matrix> it_matrices;
             vector<double> it_thresholds;
@@ -78,7 +88,7 @@ namespace MOODS { namespace scan{
             Scanner scanner(window_size);
             scanner.set_motifs(it_matrices, bg, it_thresholds);
         
-            vector<size_t> results = scanner.counts_max_hits(seq, MULT*target);
+            vector<size_t> results = scanner.counts_max_hits(seq, LIMIT_MULT * target);
 
             for (size_t j = 0; j < it_indices.size(); ++j){
                 size_t i = it_indices[j];
@@ -101,18 +111,18 @@ namespace MOODS { namespace scan{
                     upper[i] = threshold;
                 }
                 // failsafe
-                if (current[i] == threshold && !ok[i]){
+                if ((current[i] == threshold || iteration == iterations) && !ok[i]){
                     ok[i] = 1;
-                    current[i] = upper[i];
+                    status[i] = 'X';
+                    if (hits >= LIMIT_MULT * target){
+                        current[i] = upper[i];
+                    }
                     remaining--;
                 }
             }
-
-            for (size_t i = 0; i < matrices.size(); ++i){
-                std::cout << status[i];
-            }
-            std::cout << "\n";
         }
+
+
 
         Scanner scanner(window_size);
         scanner.set_motifs(matrices, bg, current);

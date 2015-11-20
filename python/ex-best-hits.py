@@ -9,16 +9,14 @@ import sys
 import time
 import os
 
-# actual program starts here
+# This example shows how to use the scan_best_hits function to obtain a desired amount
+# of highest-scoring hits.
 
 if len(sys.argv) < 3:
 	print "usage: python ex-mixing-data.py [sequence file] [matrix directory]"
 	sys.exit(1)
 
 # read an sequence
-# in this example we do not do any fancy input parsing,
-# so the file should have only characters ACGT
-# (so no line breaks for instance)
 file_name = sys.argv[1]
 with open(file_name, "r") as file_handle:
     seq = file_handle.read()
@@ -31,16 +29,41 @@ adms = [filename for filename in os.listdir(matrix_directory) if filename[-4:] =
 
 # use flat bg for the models
 bg = MOODS.tools.flat_bg(4)
-
-# log-odds
 lo_pfms = [MOODS.parsers.pfm_log_odds(matrix_directory + filename, bg, 1) for filename in pfms]
 lo_adms = [MOODS.parsers.adm_log_odds(matrix_directory + filename, bg, 0.0001) for filename in adms]
 matrices =  lo_pfms + lo_adms
 
 matrix_names = pfms + adms
+
 # scanning
+
 # we'll want about 10000 best hits for each matrix, this tries to pick an appropriate threshold by magic
+
 results = MOODS.scan.scan_best_hits_dna(seq, matrices, 10000)
+
+# Specifically, MOODS tries to guess a good threshold to produce 10000-30000 hits; if this does not succeed, MOODS uses
+# binary search to try and refine the threshold. By default we'll do 10 iterations of this, after which we
+# return *some* amount of hits that is less than 100000 (may be 0 in some cases)
+# 
+# Extra parameters can be used to adjust these values:
+#
+# results = MOODS.scan.scan_best_hits_dna(seq, matrices, target, iterations = 10, MULT = 3, UPPER_MULT = 10, window_size = 7)
+# 
+# where
+#   target       is the number of hits we want
+#   iterations   is the number of iterations (0 for unlimited, is guaranteed to finish at some point but may be slow)
+#   MULT         MULT*target is the upper bound for the number of hits MOODS *tries* to find (i.e. desired amount of hits is)
+#                in the range [target, MULT*target)
+#   UPPER_MULT   UPPER_MULT*target is the upper bound for the number of hits MOODS is allowed to give (safeguards against slow
+#                performance from too many hits)
+#   window_size  window size for scanning, passed to scanner construction (7 is probably fine always)
+#
+# Currently you can omit some of these parameters to use defaults, but you can only omit the last ones. For example, this does the
+# same thing as above but without iteration limit:
+#
+# results = MOODS.scan.scan_best_hits_dna(seq, matrices, 10000, 0)
+
+
 
 for (matrix,matrix_name,result) in zip(matrices, matrix_names, results):
     print matrix_name + "|" + str(len(result))
