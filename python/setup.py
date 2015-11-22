@@ -35,9 +35,8 @@ parsers_mod = Extension('MOODS._parsers',
                            )
 
 setup (name = 'MOODS',
-       version = '1.9',
+       version = '1.9.0-20151120',
        description = 'MOODS: Motif Occurrence Detection Suite',
        ext_modules = [tools_mod, scan_mod, parsers_mod],
-       # ext_modules = [tools_mod, misc_mod],
-       py_modules = ["MOODS.tools", "MOODS.scan"],
+       py_modules = ["MOODS.tools", "MOODS.scan, MOODS.parsers"],
 )
