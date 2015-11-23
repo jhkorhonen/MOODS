@@ -10,7 +10,7 @@ Download
 
 Download the packages here:
 
-* Python ...
+* Python [MOODS-python-1.9.0.tar.gz](tarballs/MOODS-python-1.9.0.tar.gz)
 
 Currently only the Python interfaces are available. Standalone command line application and Perl interfaces are in development.
 
@@ -18,7 +18,7 @@ Currently only the Python interfaces are available. Standalone command line appl
 Usage
 -----
 
-# Python
+### Python
 
 To start using the Python interfaces, untar the package and compile the C++ extensions:
 
