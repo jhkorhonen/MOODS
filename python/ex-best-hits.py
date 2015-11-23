@@ -19,7 +19,10 @@ if len(sys.argv) < 3:
 # read an sequence
 file_name = sys.argv[1]
 with open(file_name, "r") as file_handle:
-    seq = file_handle.read()
+    first = file_handle.next().strip()
+    if first[0] == '>':
+        first = ''
+    seq = "".join([first] + [line.strip() for line in file_handle])
 
 # read the matrix files
 # we'll mix both 0-order JASPAR models and first-order models together
@@ -39,7 +42,7 @@ matrix_names = pfms + adms
 
 # we'll want about 10000 best hits for each matrix, this tries to pick an appropriate threshold by magic
 
-results = MOODS.scan.scan_best_hits_dna(seq, matrices, 10000)
+results = MOODS.scan.scan_best_hits_dna(seq, matrices, 500, 50)
 
 # Specifically, MOODS tries to guess a good threshold to produce 10000-30000 hits; if this does not succeed, MOODS uses
 # binary search to try and refine the threshold. By default we'll do 10 iterations of this, after which we

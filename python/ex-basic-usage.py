@@ -24,16 +24,18 @@ pvalue = 0.0001
 
 # ---- read sequence ----
 # read an sequence
-# in this example we do not do any fancy input parsing,
-# so the file should have only characters ACGT
-# (so no line breaks for instance)
+# should be simple single-sequence fasta/plain text
 file_name = sys.argv[1]
 with open(file_name, "r") as file_handle:
-    seq = file_handle.read()
+    first = file_handle.next().strip()
+    if first[0] == '>':
+        first = ''
+    seq = "".join([first] + [line.strip() for line in file_handle])
 
 end = time.clock()
 
 print "Reading sequence:", end - start
+print "Sequence lenght:", len(seq)
 # ---- end read sequence ----
 
 

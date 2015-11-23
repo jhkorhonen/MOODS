@@ -2,16 +2,12 @@
 
 import MOODS.scan
 import MOODS.tools
+import MOODS.parsers
 
 import sys
 import time
 import os
 import random
-
-def load_matrix(filename):
-    with open(filename, "r") as file_handle:
-        mat = [[float(i) for i in line.split()] for line in file_handle]
-        return mat
 
 if len(sys.argv) < 2:
 	print "usage: python ex-scanner.py [matrix directory]"
@@ -22,10 +18,8 @@ if len(sys.argv) < 2:
 matrix_directory = sys.argv[1]
 matrix_names = [filename for filename in os.listdir(matrix_directory) if filename[-4:] == '.pfm']
 
-matrices = [load_matrix(matrix_directory + filename) for filename in matrix_names]
 bg = MOODS.tools.flat_bg(4)
-# log-odds transformation for matrices
-matrices = [MOODS.tools.log_odds(m, bg, 1) for m in matrices]
+matrices = [MOODS.parsers.pfm_log_odds(matrix_directory + filename, bg, 1) for filename in matrix_names]
 # thresholds computed from p-value
 thresholds = [MOODS.tools.threshold_from_p(m, bg, 0.0001) for m in matrices]
 
@@ -35,6 +29,8 @@ thresholds = [MOODS.tools.threshold_from_p(m, bg, 0.0001) for m in matrices]
 # without having to repeat the preprocessing each time
 scanner = MOODS.scan.Scanner(7) # parameter is the window size
 
+
+# note that bg given to the scanner does not affect the results
 scanner.set_motifs(matrices, bg, thresholds)
 
 # we'll generate 100 random sequences

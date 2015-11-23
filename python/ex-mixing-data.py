@@ -16,12 +16,12 @@ if len(sys.argv) < 3:
 	sys.exit(1)
 
 # read an sequence
-# in this example we do not do any fancy input parsing,
-# so the file should have only characters ACGT
-# (so no line breaks for instance)
 file_name = sys.argv[1]
 with open(file_name, "r") as file_handle:
-    seq = file_handle.read()
+    first = file_handle.next().strip()
+    if first[0] == '>':
+        first = ''
+    seq = "".join([first] + [line.strip() for line in file_handle])
 
 # read the matrix files
 # we'll mix both 0-order JASPAR models and first-order models together
