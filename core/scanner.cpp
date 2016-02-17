@@ -394,7 +394,7 @@ namespace MOODS { namespace scan{
 
 
     void Scanner::variant_matches_recursive(std::vector<std::vector<match_with_variant>>& results, const state& current,
-                                            const std::string& seq, const std::vector<variant> variants){
+                                            const std::string& seq, const std::vector<variant> variants, int max_depth){
 
 
         size_t first_required_index = current.variant_start_pos + variants[current.vs.front()].modified_seq.size() - 1;         
@@ -421,40 +421,42 @@ namespace MOODS { namespace scan{
         }
 
         // second, recursive call for each possible variant that can follow the current last variant
+        
+        if (current.depth != max_depth){
+            for (size_t next_variant = current.vs.back() + 1; next_variant < variants.size(); ++next_variant){
 
-        for (size_t next_variant = current.vs.back() + 1; next_variant < variants.size(); ++next_variant){
+                variant cv = variants[current.vs.back()];
+                variant nv = variants[next_variant];
 
-            variant cv = variants[current.vs.back()];
-            variant nv = variants[next_variant];
+                if (nv.start_pos - cv.end_pos >= remaining){
+                    break;
+                }
 
-            if (nv.start_pos - cv.end_pos >= remaining){
-                break;
+                // add next variant and recurse if the next variant is compatible with the current one AND
+                // it is not a deletion at one end of the sequence
+                if (
+                     ((cv.end_pos < nv.start_pos) ||
+                      (cv.end_pos == nv.start_pos && ( cv.start_pos < cv.end_pos || nv.start_pos < nv.end_pos  )))
+                       &&
+                    !((nv.start_pos == 0 && nv.modified_seq.size() == 0) ||
+                      (nv.end_pos == seq.size() && nv.modified_seq.size() == 0))
+                    )
+                {
+
+                    string next_prefix = current.prefix + seq.substr(cv.end_pos, nv.start_pos - cv.end_pos) + nv.modified_seq;
+                    auto next_variants = current.vs;
+                    next_variants.push_back(next_variant);
+
+                    state next = {next_variants, next_prefix, current.seq_start_pos, current.variant_start_pos};
+
+                    this->variant_matches_recursive(results, next, seq, variants, max_depth);
+                }
             }
-
-            // add next variant and recurse if the next variant is compatible with the current one AND
-            // it is not a deletion at one end of the sequence
-            if (
-                 ((cv.end_pos < nv.start_pos) ||
-                  (cv.end_pos == nv.start_pos && ( cv.start_pos < cv.end_pos || nv.start_pos < nv.end_pos  )))
-                   &&
-                !((nv.start_pos == 0 && nv.modified_seq.size() == 0) ||
-                  (nv.end_pos == seq.size() && nv.modified_seq.size() == 0))
-                )
-            {
-
-                string next_prefix = current.prefix + seq.substr(cv.end_pos, nv.start_pos - cv.end_pos) + nv.modified_seq;
-                auto next_variants = current.vs;
-                next_variants.push_back(next_variant);
-
-                state next = {next_variants, next_prefix, current.seq_start_pos, current.variant_start_pos};
-
-                this->variant_matches_recursive(results, next, seq, variants);
-            }
-        }        
+        }
     }
 
 
-    std::vector<std::vector<match_with_variant>> Scanner::variant_matches(const std::string& seq, const std::vector<variant> _variants){
+    std::vector<std::vector<match_with_variant>> Scanner::variant_matches(const std::string& seq, const std::vector<variant> _variants, int max_depth){
         
         // copy and sort the variants
         std::vector<variant> variants = _variants;
@@ -484,10 +486,11 @@ namespace MOODS { namespace scan{
                         state s = {vector<size_t>(1,i), // active variants
                                    next_prefix, // prefix string 
                                    prefix_start, // seq position where prefix starts
-                                   prefix_length // first position in prefix that is from the modified string 
+                                   prefix_length, // first position in prefix that is from the modified string 
+                                   1 // recursion depth
                                   };
         
-                        this->variant_matches_recursive(results, s, seq, variants);
+                        this->variant_matches_recursive(results, s, seq, variants, max_depth);
             }
         }
 

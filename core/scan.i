@@ -45,7 +45,7 @@ class MOODS::scan::Scanner {
         std::vector<std::vector<match> > scan(const std::string& s);
         std::vector<std::vector<match> > scan_max_hits(const std::string& s, size_t max_hits);
 
-        std::vector<std::vector<match_with_variant> > variant_matches(const std::string& seq, const std::vector<variant> variants);
+        std::vector<std::vector<match_with_variant> > variant_matches(const std::string& seq, const std::vector<variant> variants, int max_depth = 0);
 
 };
 
