@@ -394,7 +394,7 @@ namespace MOODS { namespace scan{
 
 
     void Scanner::variant_matches_recursive(std::vector<std::vector<match_with_variant>>& results, const state& current,
-                                            const std::string& seq, const std::vector<variant> variants, int max_depth){
+                                            const std::string& seq, const std::vector<variant>& variants, int max_depth){
 
 
         size_t first_required_index = current.variant_start_pos + variants[current.vs.front()].modified_seq.size() - 1;         
@@ -456,7 +456,7 @@ namespace MOODS { namespace scan{
     }
 
 
-    std::vector<std::vector<match_with_variant>> Scanner::variant_matches(const std::string& seq, const std::vector<variant> _variants, int max_depth){
+    std::vector<std::vector<match_with_variant>> Scanner::variant_matches(const std::string& seq, const std::vector<variant>& _variants, int max_depth){
         
         // copy and sort the variants
         std::vector<variant> variants = _variants;
