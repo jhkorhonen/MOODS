@@ -11,12 +11,14 @@
 #include "moods_tools.h"
 #include "moods_misc.h"
 
-#include <climits>
+#include <limits>
 
 using std::vector;
 using std::size_t;
 
 namespace MOODS { namespace tools{
+    
+const double PVAL_DP_MULTIPLIER = 2000.0;
 
 // Generates a flat background distribution
 vector<double> flat_bg(const unsigned int alphabet_size)
@@ -122,39 +124,37 @@ score_matrix log_odds(const score_matrix &mat, const vector<double> &bg, const d
 // // Calculates a threshold for a scoring matrix from a given p value
 double threshold_from_p(const score_matrix &pssm, const vector<double> &bg, const double &p)
 {
-    const double PVAL_DP_MULTIPLIER = 1000.0;
     
-    // Approximate the scoring matrix with integer matrix
-    // 'cos we calculate threshold with dynamic programming!
-    size_t a = pssm.size();
-    size_t n = pssm[0].size();
+    // Approximate the scoring matrix with integer matrix for DP
+    long a = pssm.size();
+    long n = pssm[0].size();
 
 
-    vector<vector<int> > mat(a, vector<int>(n));
+    vector<vector<long> > mat(a, vector<long>(n));
 
-    int maxT = 0;
-    int minV = INT_MAX;
+    long maxT = 0;
+    long minV = std::numeric_limits<long>::max();
 
     for (size_t i = 0; i < n; ++i)
     {
         for (size_t j = 0; j < a; ++j)
         {
             if (pssm[j][i] > 0.0){
-                mat[j][i] = (int) ( PVAL_DP_MULTIPLIER * pssm[j][i] + 0.5 );
+                mat[j][i] = (long) ( PVAL_DP_MULTIPLIER * pssm[j][i] + 0.5 );
             }
             else {
-                mat[j][i] = (int) ( PVAL_DP_MULTIPLIER * pssm[j][i] - 0.5 );
+                mat[j][i] = (long) ( PVAL_DP_MULTIPLIER * pssm[j][i] - 0.5 );
             }
         }
     }
 
     for (size_t i = 0; i < n; ++i)
     {
-        int max = mat[0][i];
-        int min = max;
+        long max = mat[0][i];
+        long min = max;
         for (size_t j = 1; j < a; ++j)
         {
-            int v = mat[j][i];
+            long v = mat[j][i];
             if (max < v)
                 max = v;
             else if (min > v)
@@ -165,7 +165,7 @@ double threshold_from_p(const score_matrix &pssm, const vector<double> &bg, cons
             minV = min;
     }
 
-    int R = maxT - n * minV;
+    long R = maxT - n * minV;
 
     vector<double> table0(R + 1, 0.0);
     vector<double> table1(R + 1, 0.0);
@@ -177,20 +177,26 @@ double threshold_from_p(const score_matrix &pssm, const vector<double> &bg, cons
     {
         for (size_t j = 0; j < a; ++j)
         {
-            int s = mat[j][i] - minV;
-            for (int r = s; r <= R; ++r)
+            long s = mat[j][i] - minV;
+            for (long r = s; r <= R; ++r)
                 table1[r] += bg[j] * table0[r - s];
         }
-        for (int r = 0; r <= R; ++r)
+        for (long r = 0; r <= R; ++r)
         {
             table0[r] = table1[r];
             table1[r] = 0.0;
         }
     }
 
-    double sum = 0.0;
 
-    for (int r = R; r >= 0; --r)
+        
+    double sum = table0[R];
+
+    if (sum > p){
+        return max_score(pssm);
+    }
+    
+    for (long r = R-1; r >= 0; --r)
     {
         sum += table0[r];
         if (sum > p)
@@ -199,7 +205,7 @@ double threshold_from_p(const score_matrix &pssm, const vector<double> &bg, cons
         }
     }
 
-    return (double) ((n * minV) / PVAL_DP_MULTIPLIER);
+    return min_score(pssm);
 }
 
 
@@ -376,10 +382,9 @@ double min_score(const score_matrix &mat, size_t a){
 // temporary threshold-from-p for high-order pwms
 double threshold_from_p(const score_matrix &pssm, const vector<double> &bg, const double &p, size_t a)
 {
-    const double PVAL_DP_MULTIPLIER = 1000.0;
     
-    size_t rows = pssm.size();
-    size_t cols = pssm[0].size();
+    long rows = pssm.size();
+    long cols = pssm[0].size();
 
     unsigned int q = MOODS::misc::q_gram_size(rows, a);
 
@@ -388,22 +393,20 @@ double threshold_from_p(const score_matrix &pssm, const vector<double> &bg, cons
     const bits_t Q_CODE_SIZE  =  (1 << (SHIFT * (q-1)));
     const bits_t Q_MASK = Q_CODE_SIZE - 1;
 
+    vector<vector<long> > mat(rows, vector<long>(cols));
 
-
-    vector<vector<int> > mat(rows, vector<int>(cols));
-
-    int maxT = 0;
-    int minV = INT_MAX;
+    long maxT = 0;
+    long minV = std::numeric_limits<long>::max();
 
     for (size_t i = 0; i < cols; ++i)
     {
         for (size_t CODE = 0; CODE < rows; ++CODE)
         {
             if (pssm[CODE][i] > 0.0){
-                mat[CODE][i] = (int) ( PVAL_DP_MULTIPLIER * pssm[CODE][i] + 0.5 );
+                mat[CODE][i] = (long) ( PVAL_DP_MULTIPLIER * pssm[CODE][i] + 0.5 );
             }
             else {
-                mat[CODE][i] = (int) ( PVAL_DP_MULTIPLIER * pssm[CODE][i] - 0.5 );
+                mat[CODE][i] = (long) ( PVAL_DP_MULTIPLIER * pssm[CODE][i] - 0.5 );
             }
         }
     }
@@ -411,11 +414,11 @@ double threshold_from_p(const score_matrix &pssm, const vector<double> &bg, cons
 
     for (size_t i = 0; i < cols; ++i)
     {
-        int max = mat[0][i];
-        int min = max;
+        long max = mat[0][i];
+        long min = max;
         for (size_t CODE = 1; CODE < rows; ++CODE)
         {
-            int v = mat[CODE][i];
+            long v = mat[CODE][i];
             if (max < v)
                 max = v;
             else if (min > v)
@@ -426,7 +429,7 @@ double threshold_from_p(const score_matrix &pssm, const vector<double> &bg, cons
             minV = min;
     }
 
-    int R = maxT - cols * minV;
+    long R = maxT - cols * minV;
 
     vector<vector<double>> table0(Q_CODE_SIZE, vector<double>(R + 1, 0));
 
@@ -449,8 +452,8 @@ double threshold_from_p(const score_matrix &pssm, const vector<double> &bg, cons
             bits_t CODE_PREFIX = (CODE >> SHIFT) & Q_MASK;
             bits_t CODE_SUFFIX = CODE & Q_MASK;
             bits_t CHAR = CODE & A_MASK;
-            int s = mat[CODE][i] - minV;
-            for (int r = s; r <= R; ++r)
+            long s = mat[CODE][i] - minV;
+            for (long r = s; r <= R; ++r)
                 table1[CODE_SUFFIX][r] += bg[CHAR] * table0[CODE_PREFIX][r - s];
         }
         table0 = table1;
@@ -458,16 +461,20 @@ double threshold_from_p(const score_matrix &pssm, const vector<double> &bg, cons
 
 
     vector<double> table2(R+1, 0.0);
-    for (int r = 0; r < R+1; ++r){
+    for (long r = 0; r < R+1; ++r){
         for (bits_t CODE = 0; CODE < Q_CODE_SIZE; ++CODE){
             table2[r] += table0[CODE][r];
         }
     }
 
 
-    double sum = 0.0;
+    double sum = table2[R];
+    
+    if (sum > p){
+        return max_score(pssm, a);
+    }
 
-    for (int r = R; r >= 0; --r)
+    for (long r = R-1; r >= 0; --r)
     {
         sum += table2[r];
         if (sum > p)
@@ -476,7 +483,7 @@ double threshold_from_p(const score_matrix &pssm, const vector<double> &bg, cons
         }
     }
 
-    return (double) ((cols * minV) / PVAL_DP_MULTIPLIER);
+    return min_score(pssm, a);
 }
 
 
