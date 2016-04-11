@@ -193,9 +193,9 @@ double threshold_from_p(const score_matrix &pssm, const vector<double> &bg, cons
     double sum = table0[R];
 
     if (sum > p){
-        return max_score(pssm);
+        return max_score(pssm) - min_delta(pssm)/2;
     }
-    
+        
     for (long r = R-1; r >= 0; --r)
     {
         sum += table0[r];
@@ -205,7 +205,7 @@ double threshold_from_p(const score_matrix &pssm, const vector<double> &bg, cons
         }
     }
 
-    return min_score(pssm);
+    return min_score(pssm)-1.0;
 }
 
 
@@ -244,6 +244,31 @@ double min_score(const score_matrix &mat)
         ret += min;
     }
     return ret;
+}
+
+double min_delta(const score_matrix &mat)
+{
+    size_t a = mat.size();
+    size_t n = mat[0].size();
+
+    double min_delta = std::numeric_limits<double>::infinity();
+    for (size_t i = 0; i < n; ++i)
+    {
+        double max = -std::numeric_limits<double>::infinity();
+        double second_max = -std::numeric_limits<double>::infinity();
+        for (size_t j = 0; j < a; ++j)
+        {
+            if (mat[j][i] > max){
+                second_max = max;
+                max = mat[j][i];
+            }
+            else if (mat[j][i] < max && mat[j][i] > second_max) {
+                second_max = mat[j][i];
+            }
+        }
+        min_delta = std::min(min_delta, max - second_max);
+    }
+    return min_delta;
 }
 
 score_matrix log_odds(const vector<vector<double>> &mat, const vector<vector<double>>& low_order_terms,
@@ -471,7 +496,7 @@ double threshold_from_p(const score_matrix &pssm, const vector<double> &bg, cons
     double sum = table2[R];
     
     if (sum > p){
-        return max_score(pssm, a);
+        return max_score(pssm, a) - min_delta(pssm)/2;;
     }
 
     for (long r = R-1; r >= 0; --r)
@@ -483,7 +508,7 @@ double threshold_from_p(const score_matrix &pssm, const vector<double> &bg, cons
         }
     }
 
-    return min_score(pssm, a);
+    return min_score(pssm, a) - 1.0;
 }
 
 

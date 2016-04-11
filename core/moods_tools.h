@@ -19,6 +19,8 @@ namespace MOODS { namespace tools{
     // min / max
     double max_score(const score_matrix &mat);
     double min_score(const score_matrix &mat);
+    
+    double min_delta(const score_matrix &mat);
 
     // temp high-order versions
     double max_score(const score_matrix &mat, size_t a);
