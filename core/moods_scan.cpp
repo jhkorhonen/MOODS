@@ -43,8 +43,8 @@ namespace MOODS { namespace scan{
 
         vector<double> bg = tools::bg_from_sequence_dna(seq,0.01);
 
-        // try to guess a good initial  threshold; this works quite often
-        double p = ((1 + 2.0*MULT) / 3.0) * target/ seq.size();
+        // try to guess a good initial threshold
+        double p = ((1 + MULT) / 3.0) * target/ seq.size();
 
         if (LIMIT_MULT < MULT){
             MULT = LIMIT_MULT;
@@ -56,11 +56,42 @@ namespace MOODS { namespace scan{
 
         vector<bool> ok(matrices.size(),0);
         size_t remaining = matrices.size();
-
+        
+        // first we check which matrices can produce less than target*LIMIT_MULT hits in the first place
         for (size_t i = 0; i < matrices.size(); ++i){
-            current[i] = tools::threshold_from_p(matrices[i],bg,p);
-            upper[i] = tools::max_score(matrices[i],4);
-            lower[i] = tools::min_score(matrices[i],4);
+            upper[i] = tools::max_score(matrices[i],4) - tools::min_delta(matrices[i])/2;
+        }
+        
+        Scanner scanner(window_size);
+        scanner.set_motifs(matrices, bg, upper);
+    
+        vector<size_t> results = scanner.counts_max_hits(seq, LIMIT_MULT * target);
+        
+        for (size_t i = 0; i < matrices.size(); ++i){
+            size_t hits = results[i];
+            // upper bound is a good limit
+            if (hits >= target && hits < LIMIT_MULT*target){
+                ok[i] = 1;
+                current[i] = upper[i];
+                remaining--;
+            }
+            // even consensus sequences have too many hits
+            // let's not return any hits for this matrix
+            else if (hits >= LIMIT_MULT*target){
+                current[i] = tools::max_score(matrices[i],4) + 1.0;
+                ok[i] = 1;
+                remaining--;
+            }
+        }
+            
+        // search for the rest of matrices
+        // we can assume that some threshold between the consensus score and
+        // max score is what we want
+        for (size_t i = 0; i < matrices.size(); ++i){
+            if (!ok[i]){
+                current[i] = tools::threshold_from_p(matrices[i],bg,p,4);
+                lower[i] = tools::min_score(matrices[i],4) - 1.0;
+            }
         }
 
         bool done = 0;
@@ -75,7 +106,7 @@ namespace MOODS { namespace scan{
             vector<size_t> it_indices;
             vector<score_matrix> it_matrices;
             vector<double> it_thresholds;
-            vector<char> status (matrices.size(), '_');
+            // vector<char> status (matrices.size(), '_');
 
             for (size_t i = 0; i < matrices.size(); ++i){
                 if (!ok[i]){
@@ -85,10 +116,10 @@ namespace MOODS { namespace scan{
                 }
             }
 
-            Scanner scanner(window_size);
+            scanner = Scanner(window_size);
             scanner.set_motifs(it_matrices, bg, it_thresholds);
         
-            vector<size_t> results = scanner.counts_max_hits(seq, LIMIT_MULT * target);
+            results = scanner.counts_max_hits(seq, LIMIT_MULT * target);
 
             for (size_t j = 0; j < it_indices.size(); ++j){
                 size_t i = it_indices[j];
@@ -100,20 +131,20 @@ namespace MOODS { namespace scan{
                 }
                 // too many hits, INCREASE the threshold & lower bound
                 else if (hits >= MULT*target){
-                    status[i] = 'H';
+                    // status[i] = 'H';
                     current[i] = (upper[i] + threshold)/2.0;
                     lower[i] = threshold;
                 }
                 // too few this, DECREASE the threshold & upper bound
                 else{
-                    status[i] = 'L';
+                    // status[i] = 'L';
                     current[i] = (lower[i] + threshold)/2.0;
                     upper[i] = threshold;
                 }
                 // failsafe
                 if ((current[i] == threshold || iteration == iterations) && !ok[i]){
                     ok[i] = 1;
-                    status[i] = 'X';
+                    // status[i] = 'X';
                     if (hits >= LIMIT_MULT * target){
                         current[i] = upper[i];
                     }
@@ -124,7 +155,7 @@ namespace MOODS { namespace scan{
 
 
 
-        Scanner scanner(window_size);
+        scanner = Scanner(window_size);
         scanner.set_motifs(matrices, bg, current);
         
         return scanner.scan(seq); 

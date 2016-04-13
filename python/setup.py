@@ -20,7 +20,9 @@ scan_mod = Extension('MOODS._scan',
                                     'core/motif_h.cpp',
                                     'core/moods_misc.cpp',
                                     'core/scanner.cpp',
-                                    'core/moods_tools.cpp'],
+                                    'core/moods_tools.cpp',
+                                    'core/match_types.cpp'
+                                ],
                            include_dirs=["core/"],
                            extra_compile_args=['-march=native', '-O3', '-fPIC', '--std=c++0x'],
                            )

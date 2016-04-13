@@ -40,9 +40,9 @@ matrix_names = pfms + adms
 
 # scanning
 
-# we'll want about 10000 best hits for each matrix, this tries to pick an appropriate threshold by magic
+# we'll want about 1000 best hits for each matrix, this tries to pick an appropriate threshold by magic
 
-results = MOODS.scan.scan_best_hits_dna(seq, matrices, 500, 50)
+results = MOODS.scan.scan_best_hits_dna(seq, matrices, 1000, 50)
 
 # Specifically, MOODS tries to guess a good threshold to produce 10000-30000 hits; if this does not succeed, MOODS uses
 # binary search to try and refine the threshold. By default we'll do 10 iterations of this, after which we
