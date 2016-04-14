@@ -163,7 +163,7 @@ MotifH::MotifH (const score_matrix& matrix, const vector<double>& bg, unsigned i
 std::pair<bool, double> MotifH::window_match(bits_t seq, bits_t shift)
 {
     double score = 0;
-    
+        
     if (l >= m){
         for (size_t i = 0; i < cols; ++i)
         {
@@ -184,13 +184,15 @@ std::pair<bool, double> MotifH::window_match(bits_t seq, bits_t shift)
 
         if (wp > 0){
             bits_t prefix = seq >> (SHIFT * (l - q + 1)); // first q - 1 "characters"
+            
             pot += P.back()[prefix];
         }
-        if (wp < m - l + 1){
+        
+        if (wp < m - l){
             bits_t suffix = seq & ((1 << (SHIFT * (q-1))) - 1); // last q - 1 "characters"
+            
             pot += S.front()[suffix];
         }
-
         return std::make_pair(pot >= T, score);
     }
     
@@ -201,12 +203,12 @@ std::pair<bool, double> MotifH::check_hit(const std::string& s, const vector<uns
     if (m <= l){
         return  std::make_pair(true, score); // matrix fits fully to the window, so the window score is what we wanted...
     }
-    
+        
     size_t ii = window_match_pos - wp;
     bits_t BACK_CODE = 0;
 
     // code for the last q-1 positions in the window if we will need that
-    if (wp < m - l + 1){
+    if (wp < m - l){
         for (size_t i = 0; i < q-1; ++i){
             BACK_CODE = ( BACK_CODE << SHIFT ) ^ alphabet_map[s[ii + wp + l - q + i + 1]];
         }
@@ -214,9 +216,10 @@ std::pair<bool, double> MotifH::check_hit(const std::string& s, const vector<uns
 
     // there's some stuff before the window
     if (wp > 0){
+                
         double forward_threshold = T;
 
-        if (wp < m - l + 1){
+        if (wp < m - l){
             forward_threshold -= S.front()[BACK_CODE];
         }
 
@@ -242,8 +245,8 @@ std::pair<bool, double> MotifH::check_hit(const std::string& s, const vector<uns
     }
 
     // stuff after the window
-    if (wp < m - l + 1){
-
+    if (wp < m - l){
+        
         // oh look we already precomputed this thing
         bits_t CODE = BACK_CODE;
 
@@ -258,6 +261,7 @@ std::pair<bool, double> MotifH::check_hit(const std::string& s, const vector<uns
             score += mat[CODE][i];
         }
     }
+    
     return std::make_pair(score >= T, score);
 }
 
