@@ -103,22 +103,36 @@ score_matrix log_odds(const score_matrix &mat, const vector<double> &bg, const d
 // Transforms a weight matrix into a PSSM with non-natural logarithm
 score_matrix log_odds(const score_matrix &mat, const vector<double> &bg, const double ps, const double log_base)
 {
+    
     size_t a = mat.size();
     size_t n = mat[0].size();
-
-    score_matrix ret(a, vector<double>(n));
-
+    
+    score_matrix ret = log_odds(mat, bg, ps);
+    
     for (size_t i = 0; i < n; ++i)
     {
-        double column_sum = 0;
-        for (size_t j = 0; j < a; ++j){
-            column_sum += mat[j][i] + ps*bg[j];
-        }
         for (size_t j = 0; j < a; ++j) {
-            ret[j][i] = (log((mat[j][i] + ps*bg[j])/column_sum) - log(bg[j])) / log(log_base);
+            ret[j][i] = ret[j][i] / log(log_base);
         }
     }
+    
     return ret;
+
+    
+    //
+    // score_matrix ret(a, vector<double>(n));
+    //
+    // for (size_t i = 0; i < n; ++i)
+    // {
+    //     double column_sum = 0;
+    //     for (size_t j = 0; j < a; ++j){
+    //         column_sum += mat[j][i] + ps*bg[j];
+    //     }
+    //     for (size_t j = 0; j < a; ++j) {
+    //         ret[j][i] = (log((mat[j][i] + ps*bg[j])/column_sum) - log(bg[j])) / log(log_base);
+    //     }
+    // }
+    // return ret;
 }
 
 // // Calculates a threshold for a scoring matrix from a given p value
@@ -272,7 +286,7 @@ double min_delta(const score_matrix &mat)
 }
 
 score_matrix log_odds(const vector<vector<double>> &mat, const vector<vector<double>>& low_order_terms,
-                      const vector<double> &bg, double ps, size_t a)
+                      const vector<double> &bg, double ps, const size_t a)
 {
     size_t rows = mat.size();
     size_t cols = mat[0].size();
@@ -318,33 +332,44 @@ score_matrix log_odds(const vector<vector<double>> &mat, const vector<vector<dou
     return ret;
 }
 
-score_matrix log_odds_rc(const vector<vector<double>> &mat, const vector<vector<double>>& low_order_terms,
-                      const vector<double> &bg, double ps, size_t a){
+score_matrix log_odds(const vector<vector<double>> &mat, const vector<vector<double>>& low_order_terms,
+                      const vector<double> &bg, double ps, const size_t a, const double log_base)
+{
+    size_t rows = mat.size();
+    size_t cols = mat[0].size();
+    
+    score_matrix ret = log_odds(mat, low_order_terms, bg, ps, a);
+    
+    for (size_t i = 0; i < cols; ++i)
+    {
+        for (size_t j = 0; j < rows; ++j) {
+            ret[j][i] = ret[j][i] / log(log_base);
+        }
+    }
+    
+    return ret;
+}
+
+
+score_matrix reverse_complement(const vector<vector<double>> &mat, const size_t a){
 
     size_t q = MOODS::misc::q_gram_size(mat.size(), a);
     size_t rows = mat.size();
     size_t cols = mat[0].size();
-
-    vector<double> bg_rc (bg.size(), 0);
-
-    for (size_t i = 0; i < bg.size(); ++i){
-        bg_rc[bg.size() - i - 1] = bg[i];
-    }
-
-    score_matrix lo = log_odds(mat, low_order_terms, bg_rc, ps, a);
-    score_matrix rc (rows, vector<double> (cols, 0));
-
+    
+    score_matrix ret(rows, vector<double>(cols));
+    
     for (size_t i = 0; i < cols; ++i){
         for (size_t j = 0; j < rows; ++j){
-            rc[misc::rc_tuple(j, a, q)][cols - i - 1] = lo[j][i];
+            ret[misc::rc_tuple(j, a, q)][cols - i - 1] = mat[j][i];
         }
     }
 
-    return rc;
+    return ret;
 }
 
 
-double max_score(const score_matrix &mat, size_t a){
+double max_score(const score_matrix &mat, const size_t a){
 
     size_t rows = mat.size();
     size_t cols = mat[0].size();
@@ -374,7 +399,7 @@ double max_score(const score_matrix &mat, size_t a){
     return best;
 }
 
-double min_score(const score_matrix &mat, size_t a){
+double min_score(const score_matrix &mat, const size_t a){
 
     size_t rows = mat.size();
     size_t cols = mat[0].size();
@@ -405,7 +430,7 @@ double min_score(const score_matrix &mat, size_t a){
 }
 
 // temporary threshold-from-p for high-order pwms
-double threshold_from_p(const score_matrix &pssm, const vector<double> &bg, const double &p, size_t a)
+double threshold_from_p(const score_matrix &pssm, const vector<double> &bg, const double &p, const size_t a)
 {
     
     long rows = pssm.size();
