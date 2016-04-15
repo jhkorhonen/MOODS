@@ -18,8 +18,6 @@ using std::size_t;
 
 namespace MOODS { namespace scan{
 
-
-
 vector<double> MotifH::expected_scores(const vector<double> &bg){
 
     const bits_t A_MASK = (1 << (SHIFT)) - 1;
@@ -93,16 +91,14 @@ size_t MotifH::window_position(const vector<double>& es){
     // m - l + 1 is the last possible windows position
 
     // TODO: fix redundant DP steps
+
     vector<double> window_scores(m - l + 1, -std::numeric_limits<double>::infinity());
 
     for (unsigned int start = 0; start < m - l + 1; ++start){
-        vector<double> ss = this->max_scores_f(start, start + l - q - 2).back();
+        vector<double> ss = this->max_scores_f(start, start + l - q + 1).back();
         window_scores[start] = *std::max_element(ss.begin(), ss.end());
-
-        // for (unsigned int j = 0; j < ss.size(); ++j){
-        //     window_scores[start] = std::max(ss[j], window_scores[start]);
-        // }
     }
+    
 
     // then we just pick the best window
     double current_exp = 0;
