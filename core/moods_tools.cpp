@@ -10,6 +10,7 @@
 #include "moods.h"
 #include "moods_tools.h"
 #include "moods_misc.h"
+#include "match_types.h"
 
 #include <limits>
 
@@ -535,6 +536,51 @@ double threshold_from_p(const score_matrix &pssm, const vector<double> &bg, cons
 
     return min_score(pssm, a) - 1.0;
 }
+
+vector<MOODS::variant> snp_variants(const std::string &seq){
+    
+    vector<MOODS::variant> ret;    
+    vector<std::string> snp_alt(256);
+    
+    snp_alt[(unsigned char)'w'] = "AT";
+    snp_alt[(unsigned char)'W'] = "AT";
+    
+    snp_alt[(unsigned char)'s'] = "CG";
+    snp_alt[(unsigned char)'S'] = "CG";
+    
+    snp_alt[(unsigned char)'m'] = "AC";
+    snp_alt[(unsigned char)'M'] = "AC";
+
+    snp_alt[(unsigned char)'k'] = "GT";    
+    snp_alt[(unsigned char)'K'] = "GT";
+
+    snp_alt[(unsigned char)'r'] = "AG";    
+    snp_alt[(unsigned char)'R'] = "AG";
+    
+    snp_alt[(unsigned char)'y'] = "CT";
+    snp_alt[(unsigned char)'Y'] = "CT";
+    
+    snp_alt[(unsigned char)'b'] = "CGT";
+    snp_alt[(unsigned char)'B'] = "CGT";
+    
+    snp_alt[(unsigned char)'d'] = "AGT";
+    snp_alt[(unsigned char)'D'] = "AGT";
+    
+    snp_alt[(unsigned char)'h'] = "ACT";
+    snp_alt[(unsigned char)'H'] = "ACT";
+    
+    snp_alt[(unsigned char)'v'] = "ACG";
+    snp_alt[(unsigned char)'V'] = "ACG";
+    
+    for (size_t i = 0; i < seq.size(); ++i){
+        for (size_t j = 0; j < snp_alt[seq[i]].size(); ++j){
+            ret.push_back(variant{i,i+1,snp_alt[seq[i]].substr(j,1)});
+        }
+    }
+    
+    return ret;
+}
+
 
 
 } // namespace tools
