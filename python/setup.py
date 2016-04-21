@@ -39,13 +39,13 @@ parsers_mod = Extension('MOODS._parsers',
                            extra_compile_args=['-march=native', '-O3', '-fPIC', '--std=c++0x'],
                            )
 
-setup (name = 'MOODS',
+setup (name = 'MOODS-python',
        version = '1.9.1a1',
        description = 'MOODS: Motif Occurrence Detection Suite',
+       maintainer = "Janne H. Korhonen",
+       maintainer_email = "janne.h.korhonen@gmail.com",
        url='https://www.cs.helsinki.fi/group/pssmfind/',
+       license = "GPLv3 / Biopython license",
        ext_modules = [tools_mod, scan_mod, parsers_mod],
        packages = ["MOODS"],
-       scripts = ["ex-basic-usage.py", "ex-custom-alphabets.py", "ex-mixing-data.py", 
-"ex-best-hits.py", "ex-high-order-motif.py", "ex-scanner.py", "moods_dna.py"]
-       # py_modules = ["MOODS.tools", "MOODS.scan, MOODS.parsers"],
 )
