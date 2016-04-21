@@ -13,7 +13,7 @@ import os
 # of highest-scoring hits.
 
 if len(sys.argv) < 3:
-	print "usage: python ex-mixing-data.py [sequence file] [matrix directory]"
+	print "usage: python ex-best-hits.py [sequence file] [matrix directory]"
 	sys.exit(1)
 
 # read an sequence
@@ -32,8 +32,9 @@ adms = [filename for filename in os.listdir(matrix_directory) if filename[-4:] =
 
 # use flat bg for the models
 bg = MOODS.tools.flat_bg(4)
-lo_pfms = [MOODS.parsers.pfm_log_odds(matrix_directory + filename, bg, 1) for filename in pfms]
-lo_adms = [MOODS.parsers.adm_log_odds(matrix_directory + filename, bg, 0.0001) for filename in adms]
+pseudocount = 0.001
+lo_pfms = [MOODS.parsers.pfm_to_log_odds(matrix_directory + filename, bg, pseudocount) for filename in pfms]
+lo_adms = [MOODS.parsers.adm_to_log_odds(matrix_directory + filename, bg, pseudocount) for filename in adms]
 matrices =  lo_pfms + lo_adms
 
 matrix_names = pfms + adms
@@ -42,7 +43,7 @@ matrix_names = pfms + adms
 
 # we'll want about 1000 best hits for each matrix, this tries to pick an appropriate threshold by magic
 
-results = MOODS.scan.scan_best_hits_dna(seq, matrices, 1000, 50)
+results = MOODS.scan.scan_best_hits_dna(seq, matrices, 1000)
 
 # Specifically, MOODS tries to guess a good threshold to produce 10000-30000 hits; if this does not succeed, MOODS uses
 # binary search to try and refine the threshold. By default we'll do 10 iterations of this, after which we
@@ -64,7 +65,7 @@ results = MOODS.scan.scan_best_hits_dna(seq, matrices, 1000, 50)
 # Currently you can omit some of these parameters to use defaults, but you can only omit the last ones. For example, this does the
 # same thing as above but without iteration limit:
 #
-# results = MOODS.scan.scan_best_hits_dna(seq, matrices, 10000, 0)
+# results = MOODS.scan.scan_best_hits_dna(seq, matrices, 1000, 0)
 
 
 

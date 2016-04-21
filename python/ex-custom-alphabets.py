@@ -1,3 +1,5 @@
+#!/usr/bin/python
+
 import MOODS.scan
 import MOODS.tools
 import random

@@ -31,7 +31,7 @@ mat2 = [
 	[1,1,1,0,0,0], #GG
 	[0,0,0,1,0,0], #GT
 	[0,0,0,0,0,0], #TA
-	[0,0,0,0,0,2], #TC
+	[0,0,0,0,0,10], #TC
 	[0,0,0,0,0,0], #TG
 	[0,0,0,0,1,0]  #TT
 ]
@@ -46,7 +46,7 @@ seq = seq + ''.join([random.choice(['A', 'C', 'G', 'T']) for j in range(1000)])
 seq = seq + 'GGGGTTC'
 seq = seq + ''.join([random.choice(['A', 'C', 'G', 'T']) for j in range(1000)])
 
-results = MOODS.scan.scan_dna(seq, matrices, bg, thresholds, 5)
+results = MOODS.scan.scan_dna(seq, matrices, bg, thresholds, 2)
 
 for mat, result in zip(matrices, results):
     for r in result:

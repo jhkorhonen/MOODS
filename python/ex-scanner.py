@@ -19,9 +19,9 @@ matrix_directory = sys.argv[1]
 matrix_names = [filename for filename in os.listdir(matrix_directory) if filename[-4:] == '.pfm']
 
 bg = MOODS.tools.flat_bg(4)
-matrices = [MOODS.parsers.pfm_log_odds(matrix_directory + filename, bg, 1) for filename in matrix_names]
+matrices = [MOODS.parsers.pfm_to_log_odds(matrix_directory + filename, bg, 1) for filename in matrix_names]
 # thresholds computed from p-value
-thresholds = [MOODS.tools.threshold_from_p(m, bg, 0.0001) for m in matrices]
+thresholds = [MOODS.tools.threshold_from_p(m, bg, 0.001) for m in matrices]
 
 
 # instead of just calling the scan function, we'll build a scanner object
@@ -43,6 +43,6 @@ for i in xrange(100):
 	# results = scanner.scan(seq, 10)
 	#
 	# this is mostly intended to prevent things from slowing down too much
-	# when the threshold is too loose for some reason
+	# when the threshold is too loose for some reason (see also ex-best-hits.py)
 
-	print "Sequence:", i, "Hits:", sum([len(r) for r in results])
+	print "Sequence", i, "hits:", sum([len(r) for r in results])
