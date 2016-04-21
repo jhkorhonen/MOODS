@@ -1,1 +1,5 @@
 include core/*.h
+include example-data/readme.MD
+include example-data/seq/chr1-5k-55k.fa
+include example-data/matrices/*.pfm
+include example-data/matrices/*.adm
