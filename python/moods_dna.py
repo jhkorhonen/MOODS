@@ -86,20 +86,20 @@ if args.output_file is not None:
 # --- Helper functions for IO ---
 
 def pfm_to_log_odds(filename):
-    if args.log_base:
-        mat = MOODS.parsers.pfm_to_log_odds(filename, args.bg, args.ps, args.log_base)
+    if args.log_base is not None:
+        mat = MOODS.parsers.pfm_to_log_odds(filename, args.lo_bg, args.ps, args.log_base)
     else:
-        mat = MOODS.parsers.pfm_to_log_odds(filename, args.bg, args.ps)
+        mat = MOODS.parsers.pfm_to_log_odds(filename, args.lo_bg, args.ps)
     if len(mat) != 4:
         return False, mat
     else:
         return True, mat
 
 def adm_to_log_odds(filename):
-    if args.log_base:
-        mat = MOODS.parsers.adm_to_log_odds(filename, args.bg, args.ps, 4, args.log_base)
+    if args.log_base is not None: 
+        mat = MOODS.parsers.adm_to_log_odds(filename, args.lo_bg, args.ps, 4, args.log_base)
     else:
-        mat = MOODS.parsers.adm_to_log_odds(filename, args.bg, args.ps, 4)
+        mat = MOODS.parsers.adm_to_log_odds(filename, args.lo_bg, args.ps, 4)
     if len(mat) != 16:
         return False, mat
     else:
@@ -243,9 +243,10 @@ if args.p_val is not None or args.t is not None:
         scanner.set_motifs(matrices_all, bg, thresholds)
     # build scanner if using p-value and --batch
     if args.p_val is not None and args.batch:
+        bg = args.bg
         if args.verbosity >= 1:
             print("{}: computing thresholds from p-value".format(os.path.basename(__file__)), file=sys.stderr)
-        thresholds = [MOODS.tools.threshold_from_p(m,args.bg,args.p_val,4) for m in matrices_all]        
+        thresholds = [MOODS.tools.threshold_from_p(m,bg,args.p_val,4) for m in matrices_all]        
         if args.verbosity >= 3:
             for (m, t) in zip(matrix_names, thresholds):
                 print("{}: threshold for {} is {}".format(os.path.basename(__file__), m, t), file=sys.stderr)
