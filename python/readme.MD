@@ -11,9 +11,12 @@ Getting Started
 Start by compiling the MOODS extensions and optionally installing
 the MOODS module to Python library path. Do one of the following:
 
-(a) Compile the extensions in place:
+(a) If you don't want to install MOODS package right now, you can just
+compile the extensions in place and create a symlink under `scripts/`:
 
     python setup.py build_ext --inplace
+    cd scripts
+    ln -s ../MOODS/    
 
 (b) Install the module to your local Python library path:
 
