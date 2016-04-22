@@ -1,6 +1,7 @@
 include core/*.h
-include example-data/readme.MD
-include example-data/seq/chr1-5k-55k.fa
-include example-data/matrices/*
-include ex-*.py moods_dna.py
+include readme.MD
+include scripts/example-data/readme.MD
+include scripts/example-data/seq/chr1-5k-55k.fa
+include scripts/example-data/matrices/*
+include scripts/ex-*.py scripts/moods_dna.py
 include COPYING.BIOPYTHON COPYING.GPLv3
