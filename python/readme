@@ -1,15 +1,39 @@
-MOODS module for python
-=======================
+MOODS-python 1.9.1
+==================
 
-Installation
-------------
+Motif Occurrence Detection Suite
+https://www.cs.helsinki.fi/group/pssmfind/
 
-To install this module type the following:
 
-    python setup.py install
+Getting Started
+---------------
 
-For more information about installing python modules see python documentation
-at <http://docs.python.org/install/index.html>
+Start by compiling the MOODS extensions and optionally installing
+the MOODS module to Python library path. Do one of the following:
+
+(a) Compile the extensions in place:
+
+    python setup.py build_ext --inplace
+
+(b) Install the module to your local Python library path:
+
+    python setup.py install --user
+
+(c) Install the module for all users:
+
+    sudo python setup.py install
+
+In all cases, you can test MOODS by running the `moods_dna.py` script
+with the example data provided with the package:
+
+    python moods_dna.py -m example-data/matrices/*.{pfm,adm} -s example-data/seq/chr1-5k-55k.fa -p 0.0001
+    python moods_dna.py --help
+
+
+Documentation
+-------------
+
+Documentation on GitHub wiki: https://github.com/jhkorhonen/MOODS/wiki
 
 
 Copyright and Licence
