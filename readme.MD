@@ -1,9 +1,9 @@
-MOODS 1.9.1
+MOODS 1.9.2
 ===========
 
 MOODS is a suite of algorithms for matching position weight matrices (PWM) against DNA sequences, featuring advanced matrix matching algorithms implemented in C++ that can be used to scan hundreds of matrices against chromosome-sized sequences in few seconds. MOODS has been designed with integration into large-scale python workflows in mind, but can also be used as a stand-alone analysis tool.
 
- * MOODS 1.9.1.1 released:
+ * MOODS 1.9.2 released:
    * fixed installation script
  * MOODS 1.9.1 released:
    * introduced python commandline tool for basic analysis
@@ -17,7 +17,7 @@ Download
 
 Download the packages here:
 
-* Python 2.7: [MOODS-python-1.9.1.1.tar.gz](https://github.com/jhkorhonen/MOODS/releases/download/v1.9.1.1/MOODS-python-1.9.1.1.tar.gz)
+* Python 2.7: [MOODS-python-1.9.2.tar.gz](https://github.com/jhkorhonen/MOODS/releases/download/v1.9.2/MOODS-python-1.9.2.tar.gz)
 
 Currently only the Python package is available; it contains MOODS Python libraries along a commandline interface for most of the MOODS functions.
 
@@ -34,7 +34,7 @@ See the GitHub wiki for documentation:
 Contact
 -------
 
-For bug reports and other software issues, you can use [issue tracker](https://github.com/jhkorhonen/MOODS/issues).
+For bug reports and other software issues, you can use [issue tracker](https://github.com/jhkorhonen/MOODS/issues). Or contact us directly:
 
  * [Janne H. Korhonen](http://www.ru.is/kennarar/korhonen/) MOODS developer
 
