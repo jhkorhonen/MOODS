@@ -58,8 +58,10 @@ vector<double> bg_from_sequence_dna(const std::string &seq, const double ps)
         counts[m[c]]++;
     }
     
+    unsigned int count_all = counts[0] + counts[1] + counts[2] + counts[3];
+    
     for (unsigned int j = 0; j < alphabet_size; ++j){
-        bg[j] = (((double)counts[j] + ps)/ ((double)seq.size() + alphabet_size * ps));
+        bg[j] = (((double)counts[j] + ps)/ ((double)count_all + alphabet_size * ps));
     }
 
     return bg;
