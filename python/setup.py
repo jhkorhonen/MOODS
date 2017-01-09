@@ -6,14 +6,17 @@ setup.py file for MOODS
 
 from distutils.core import setup, Extension
 
+common_includes = ["core/"]
+common_compile_args = ['-march=native', '-O3', '-fPIC', '--std=c++11']
+
 
 tools_mod = Extension('MOODS._tools',
                            sources=['core/tools_wrap.cxx',
                                     'core/moods_tools.cpp',
                                     'core/moods_misc.cpp',
                                     'core/match_types.cpp'],
-                           include_dirs=["core/"],
-                           extra_compile_args=['-march=native', '-O3', '-fPIC', '--std=c++0x'],
+                           include_dirs=common_includes,
+                           extra_compile_args=common_compile_args,
                            )
 
 scan_mod = Extension('MOODS._scan',
@@ -26,8 +29,8 @@ scan_mod = Extension('MOODS._scan',
                                     'core/moods_tools.cpp',
                                     'core/match_types.cpp'
                                 ],
-                           include_dirs=["core/"],
-                           extra_compile_args=['-march=native', '-O3', '-fPIC', '--std=c++0x'],
+                           include_dirs=common_includes,
+                           extra_compile_args=common_compile_args,
                            )
 
 parsers_mod = Extension('MOODS._parsers',
@@ -36,12 +39,12 @@ parsers_mod = Extension('MOODS._parsers',
                                     'core/moods_misc.cpp',
                                     'core/moods_tools.cpp',
                                     'core/match_types.cpp'],
-                           include_dirs=["core/"],
-                           extra_compile_args=['-march=native', '-O3', '-fPIC', '--std=c++0x'],
+                           include_dirs=common_includes,
+                           extra_compile_args=common_compile_args,
                            )
 
 setup (name = 'MOODS-python',
-       version = '1.9.1',
+       version = '1.9.3',
        description = 'MOODS: Motif Occurrence Detection Suite',
        maintainer = "Janne H. Korhonen",
        maintainer_email = "janne.h.korhonen@gmail.com",
