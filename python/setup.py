@@ -44,7 +44,7 @@ parsers_mod = Extension('MOODS._parsers',
                            )
 
 setup (name = 'MOODS-python',
-       version = '1.9.2',
+       version = '1.9.3',
        description = 'MOODS: Motif Occurrence Detection Suite',
        maintainer = "Janne H. Korhonen",
        maintainer_email = "janne.h.korhonen@gmail.com",
