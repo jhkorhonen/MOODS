@@ -17,7 +17,7 @@ namespace MOODS { namespace tools{
     score_matrix log_odds(const score_matrix &mat, const std::vector<double> &bg, const double ps, const double log_base);
     
     // threshold from p
-    double threshold_from_p(const score_matrix &mat, const std::vector<double> &bg, const double &p);
+    double threshold_from_p(const score_matrix &mat, const std::vector<double> &bg, const double &p, const double &precision);
     
     // min / max
     double max_score(const score_matrix &mat);
@@ -27,7 +27,7 @@ namespace MOODS { namespace tools{
     // high-order versions
     double max_score(const score_matrix &mat, const size_t a);
     double min_score(const score_matrix &mat, const size_t a);
-    double threshold_from_p(const score_matrix &mat, const std::vector<double> &bg, const double &p, size_t a);
+    double threshold_from_p(const score_matrix &mat, const std::vector<double> &bg, const double &p, size_t a, const double &precision);
     score_matrix reverse_complement(const std::vector<std::vector<double>> &mat, size_t a);
     score_matrix log_odds(const score_matrix &mat, const std::vector<std::vector<double> >& low_order_terms,
                           const std::vector<double> &bg, const double ps, const size_t a);

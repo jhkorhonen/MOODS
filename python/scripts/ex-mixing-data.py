@@ -42,7 +42,7 @@ matrix_names = pfms + adms
 
 # threshold selection
 p = 0.0001
-thresholds = [MOODS.tools.threshold_from_p(m,bg,p) for m in lo_pfms] + [MOODS.tools.threshold_from_p(m,bg,p,4) for m in lo_adms]
+thresholds = [MOODS.tools.threshold_from_p(m,bg,p,2000.0) for m in lo_pfms] + [MOODS.tools.threshold_from_p(m,bg,p,4,2000.0) for m in lo_adms]
 
 # scanning
 results = MOODS.scan.scan_dna(seq, matrices, bg, thresholds, 7)

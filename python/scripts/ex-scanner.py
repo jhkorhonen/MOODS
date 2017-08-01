@@ -21,7 +21,7 @@ matrix_names = [filename for filename in os.listdir(matrix_directory) if filenam
 bg = MOODS.tools.flat_bg(4)
 matrices = [MOODS.parsers.pfm_to_log_odds(matrix_directory + filename, bg, 1) for filename in matrix_names]
 # thresholds computed from p-value
-thresholds = [MOODS.tools.threshold_from_p(m, bg, 0.001) for m in matrices]
+thresholds = [MOODS.tools.threshold_from_p(m, bg, 0.001, 2000.0) for m in matrices]
 
 
 # instead of just calling the scan function, we'll build a scanner object

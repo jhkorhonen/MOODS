@@ -246,7 +246,7 @@ if args.p_val is not None or args.t is not None:
         bg = args.bg
         if args.verbosity >= 1:
             print("{}: computing thresholds from p-value".format(os.path.basename(__file__)), file=sys.stderr)
-        thresholds = [MOODS.tools.threshold_from_p(m,bg,args.p_val,4) for m in matrices_all]        
+        thresholds = [MOODS.tools.threshold_from_p(m,bg,args.p_val,4,2000.0) for m in matrices_all]        
         if args.verbosity >= 3:
             for (m, t) in zip(matrix_names, thresholds):
                 print("{}: threshold for {} is {}".format(os.path.basename(__file__), m, t), file=sys.stderr)
@@ -273,7 +273,7 @@ if args.p_val is not None or args.t is not None:
                     print("{}: estimated background for {} is {}".format(os.path.basename(__file__), header, bg), file=sys.stderr)
                 if args.verbosity >= 1:
                     print("{}: computing thresholds from p-value for sequence {}".format(os.path.basename(__file__), header), file=sys.stderr)
-                thresholds = [MOODS.tools.threshold_from_p(m,bg,args.p_val,4) for m in matrices_all]
+                thresholds = [MOODS.tools.threshold_from_p(m,bg,args.p_val,4,2000.0) for m in matrices_all]
                 if args.verbosity >= 3:
                     for (m, t) in zip(matrix_names, thresholds):
                         print("{}: threshold for {} is {}".format(os.path.basename(__file__), m, t), file=sys.stderr)

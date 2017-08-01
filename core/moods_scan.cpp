@@ -89,7 +89,7 @@ namespace MOODS { namespace scan{
         // max score is what we want
         for (size_t i = 0; i < matrices.size(); ++i){
             if (!ok[i]){
-                current[i] = tools::threshold_from_p(matrices[i],bg,p,4);
+                current[i] = tools::threshold_from_p(matrices[i],bg,p,4,2000.0);
                 lower[i] = tools::min_score(matrices[i],4) - 1.0;
             }
         }

@@ -19,8 +19,6 @@ using std::size_t;
 
 namespace MOODS { namespace tools{
     
-const double PVAL_DP_MULTIPLIER = 2000.0;
-
 // Generates a flat background distribution
 vector<double> flat_bg(const unsigned int alphabet_size)
 {
@@ -139,7 +137,7 @@ score_matrix log_odds(const score_matrix &mat, const vector<double> &bg, const d
 }
 
 // // Calculates a threshold for a scoring matrix from a given p value
-double threshold_from_p(const score_matrix &pssm, const vector<double> &bg, const double &p)
+double threshold_from_p(const score_matrix &pssm, const vector<double> &bg, const double &p, const double &precision)
 {
     
     // Approximate the scoring matrix with integer matrix for DP
@@ -157,10 +155,10 @@ double threshold_from_p(const score_matrix &pssm, const vector<double> &bg, cons
         for (size_t j = 0; j < a; ++j)
         {
             if (pssm[j][i] > 0.0){
-                mat[j][i] = (long) ( PVAL_DP_MULTIPLIER * pssm[j][i] + 0.5 );
+                mat[j][i] = (long) ( precision * pssm[j][i] + 0.5 );
             }
             else {
-                mat[j][i] = (long) ( PVAL_DP_MULTIPLIER * pssm[j][i] - 0.5 );
+                mat[j][i] = (long) ( precision * pssm[j][i] - 0.5 );
             }
         }
     }
@@ -218,7 +216,7 @@ double threshold_from_p(const score_matrix &pssm, const vector<double> &bg, cons
         sum += table0[r];
         if (sum > p)
         {
-            return (double) ((r + n * minV + 1) / PVAL_DP_MULTIPLIER);
+            return (double) ((r + n * minV + 1) / precision);
         }
     }
 
@@ -433,7 +431,7 @@ double min_score(const score_matrix &mat, const size_t a){
 }
 
 // temporary threshold-from-p for high-order pwms
-double threshold_from_p(const score_matrix &pssm, const vector<double> &bg, const double &p, const size_t a)
+double threshold_from_p(const score_matrix &pssm, const vector<double> &bg, const double &p, const size_t a, const double &precision)
 {
     
     long rows = pssm.size();
@@ -456,10 +454,10 @@ double threshold_from_p(const score_matrix &pssm, const vector<double> &bg, cons
         for (size_t CODE = 0; CODE < rows; ++CODE)
         {
             if (pssm[CODE][i] > 0.0){
-                mat[CODE][i] = (long) ( PVAL_DP_MULTIPLIER * pssm[CODE][i] + 0.5 );
+                mat[CODE][i] = (long) ( precision * pssm[CODE][i] + 0.5 );
             }
             else {
-                mat[CODE][i] = (long) ( PVAL_DP_MULTIPLIER * pssm[CODE][i] - 0.5 );
+                mat[CODE][i] = (long) ( precision * pssm[CODE][i] - 0.5 );
             }
         }
     }
@@ -532,7 +530,7 @@ double threshold_from_p(const score_matrix &pssm, const vector<double> &bg, cons
         sum += table2[r];
         if (sum > p)
         {
-            return (double) ((r + cols * minV + 1) / PVAL_DP_MULTIPLIER);
+            return (double) ((r + cols * minV + 1) / precision);
         }
     }
 

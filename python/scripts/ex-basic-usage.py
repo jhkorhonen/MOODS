@@ -63,7 +63,7 @@ matrices = [MOODS.parsers.pfm_to_log_odds(matrix_directory + filename, bg, pseud
 # reverse complements
 matrices = matrices + [MOODS.tools.reverse_complement(m) for m in matrices]
 
-thresholds = [MOODS.tools.threshold_from_p(m, bg, pvalue) for m in matrices]
+thresholds = [MOODS.tools.threshold_from_p(m, bg, pvalue, 2000.0) for m in matrices]
 
 
 end = time.clock()
