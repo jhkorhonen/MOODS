@@ -37,8 +37,11 @@ namespace MOODS { namespace parsers{
             std::copy(std::istream_iterator<double>(iss),
                       std::istream_iterator<double>(),
                       std::back_inserter(row));
-
-            mat.push_back(row);
+            
+            // let's not put any empty lines in there 
+            if (row.size() >= 1){
+                mat.push_back(row);
+            }
         }
 
         return mat;
