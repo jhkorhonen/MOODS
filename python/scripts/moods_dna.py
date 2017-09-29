@@ -40,9 +40,10 @@ option_group.add_argument('-R','--no-rc', dest='no_rc', action="store_true", hel
 option_group.add_argument('--no-snps', dest='no_snps', action="store_true", help='ignore IUPAC symbols coding multiple nucleotides')
 option_group.add_argument('--batch', dest='batch', action="store_true", help='do not recompute thresholds from p-values for each sequence separately (recommended when dealing with lots of short sequences)')
 option_group.add_argument('--bg', metavar=('pA', 'pC', 'pG', 'pT'), nargs=4, action='store', type=float, dest='bg', default = [0.25,0.25,0.25,0.25], help='background distribution for computing thresholds from p-value with --batch (default is 0.25 for all alleles)')
-option_group.add_argument('--ps', metavar='p', action='store', dest='ps', type=float, help='specify pseudocount for log-odds conversion (default = 0.1)', default = 0.01)# bg 
+option_group.add_argument('--ps', metavar='p', action='store', dest='ps', type=float, help='specify pseudocount for log-odds conversion (default = 0.01)', default = 0.01)# bg 
 option_group.add_argument('--log-base', metavar='x', action='store', dest='log_base', type=float, help='logarithm base for log-odds conversion (default natural logarithm)')
 option_group.add_argument('--lo-bg', metavar=('pA', 'pC', 'pG', 'pT'), nargs=4, action='store', type=float, dest='lo_bg', default = [0.25,0.25,0.25,0.25], help='background distribution for log-odds conversion (default is 0.25 for all alleles)')
+option_group.add_argument('--threshold-precision', metavar='x', action='store', dest='threshold_precision', type=float, help='specify the precision used for computing the thresholds from p-values (default = {})'.format(MOODS.tools.DEFAULT_DP_PRECISION), default = MOODS.tools.DEFAULT_DP_PRECISION)
 
 
 
@@ -246,7 +247,7 @@ if args.p_val is not None or args.t is not None:
         bg = args.bg
         if args.verbosity >= 1:
             print("{}: computing thresholds from p-value".format(os.path.basename(__file__)), file=sys.stderr)
-        thresholds = [MOODS.tools.threshold_from_p(m,bg,args.p_val,4) for m in matrices_all]        
+        thresholds = [MOODS.tools.threshold_from_p_with_precision(m,bg,args.p_val,args.threshold_precision,4) for m in matrices_all]        
         if args.verbosity >= 3:
             for (m, t) in zip(matrix_names, thresholds):
                 print("{}: threshold for {} is {}".format(os.path.basename(__file__), m, t), file=sys.stderr)
@@ -273,7 +274,7 @@ if args.p_val is not None or args.t is not None:
                     print("{}: estimated background for {} is {}".format(os.path.basename(__file__), header, bg), file=sys.stderr)
                 if args.verbosity >= 1:
                     print("{}: computing thresholds from p-value for sequence {}".format(os.path.basename(__file__), header), file=sys.stderr)
-                thresholds = [MOODS.tools.threshold_from_p(m,bg,args.p_val,4) for m in matrices_all]
+                thresholds = [MOODS.tools.threshold_from_p_with_precision(m,bg,args.p_val,args.threshold_precision,4) for m in matrices_all]
                 if args.verbosity >= 3:
                     for (m, t) in zip(matrix_names, thresholds):
                         print("{}: threshold for {} is {}".format(os.path.basename(__file__), m, t), file=sys.stderr)
