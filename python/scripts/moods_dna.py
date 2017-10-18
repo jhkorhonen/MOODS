@@ -144,7 +144,7 @@ def iter_fasta(filename):
         iterator = groupby(f, lambda line: line[0] == ">")
         for is_header, group in iterator:
             if is_header:
-                header = group.next()[1:].strip()
+                header = next(group)[1:].strip()
             else: 
                 yield header, "".join(s.strip() for s in group)
 
