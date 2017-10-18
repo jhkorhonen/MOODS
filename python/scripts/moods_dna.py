@@ -122,9 +122,12 @@ def adm(filename):
 
 def read_text_or_fasta(filename):
     with open(filename, "r") as f:
-        line = ""
-        while len(line) == 0:
-            line = f.next().strip()
+        for line in f:
+            if len(line) == 0:
+                pass
+            else:
+                line = line.strip()
+                break
     if line[0] == '>':
         return iter_fasta(filename)
     else:
@@ -170,7 +173,7 @@ def print_results(header, seq, matrices, matrix_names, results, results_snps=[],
         rrs = results_snps[len(matrix_names):]
     
     # mix the results together, use + and - to indicate strand
-    results = [ [(r.pos, r.score, '+', ()) for r in fr[i]] + [(r.pos, r.score, '-', ()) for r in rr[i]] + [(r.pos, r.score, '+', r.variants) for r in frs[i]] + [(r.pos, r.score, '-', r.variants) for r in rrs[i]] for i in xrange(len(matrix_names))]
+    results = [ [(r.pos, r.score, '+', ()) for r in fr[i]] + [(r.pos, r.score, '-', ()) for r in rr[i]] + [(r.pos, r.score, '+', r.variants) for r in frs[i]] + [(r.pos, r.score, '-', r.variants) for r in rrs[i]] for i in range(len(matrix_names))]
     for (matrix, matrix_name,result) in zip(matrices, matrix_names, results):
         if args.verbosity >= 2:
             print("{}: {}: {} matches for {}".format(os.path.basename(__file__), header, len(result), matrix_name), file=sys.stderr)
@@ -192,7 +195,8 @@ def print_results(header, seq, matrices, matrix_names, results, results_snps=[],
 if args.verbosity >= 1:
     print("{}: reading matrices ({} matrix files)".format(os.path.basename(__file__), len(args.matrix_files)+len(args.lo_matrix_files)), file=sys.stderr) 
 
-matrix_names = map(os.path.basename, [n for n in args.matrix_files + args.lo_matrix_files])
+# matrix_names = map(os.path.basename, [n for n in args.matrix_files + args.lo_matrix_files])
+matrix_names = [os.path.basename(n) for n in args.matrix_files + args.lo_matrix_files]
 matrices = []
 matrices_rc = []
 for filename in args.matrix_files:
