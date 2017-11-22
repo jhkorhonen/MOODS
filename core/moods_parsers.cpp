@@ -108,7 +108,7 @@ namespace MOODS { namespace parsers{
         }
         
         for (size_t i = a * a + 1; i < a * a + a; ++i){
-            if (adm[i].size() != n + 1){
+            if (adm[i].size() == 0){ // we only need 0-order term for the first row
                 return score_matrix();
             }
         }
