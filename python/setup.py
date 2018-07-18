@@ -7,7 +7,7 @@ setup.py file for MOODS
 from distutils.core import setup, Extension
 
 common_includes = ["core/"]
-common_compile_args = ['-march=native', '-O3', '-fPIC', '--std=c++11']
+common_compile_args = ['-mtune=generic', '-O3', '-fPIC', '--std=c++11']
 
 
 tools_mod = Extension('MOODS._tools',
