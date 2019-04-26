@@ -394,13 +394,12 @@ namespace MOODS { namespace scan{
 
     void Scanner::variant_matches_recursive(std::vector<std::vector<match_with_variant>>& results, const state& current,
                                             const std::string& seq, const std::vector<variant>& variants, int max_depth){
-
-
+        
         size_t first_required_index = current.variant_start_pos + variants[current.vs.front()].modified_seq.size() - 1;         
         size_t last_required_index = current.prefix.size() - variants[current.vs.back()].modified_seq.size();
 
         size_t remaining = 0;
-        if (current.prefix.size() - first_required_index < max_motif_size)
+        if (current.prefix.size() < max_motif_size + first_required_index)
             remaining = max_motif_size - (current.prefix.size() - first_required_index);
 
         // first, we get modified hits for the current set of active sequence variants
@@ -413,7 +412,7 @@ namespace MOODS { namespace scan{
             for (size_t i = 0; i < current_results[motif].size(); ++i){
                 match m = current_results[motif][i];
 
-                if (m.pos + this->motifs[motif]->size() - 1 >= last_required_index && m.pos <= first_required_index) {
+                if (m.pos + this->motifs[motif]->size() >= last_required_index + 1 && m.pos <= first_required_index) {
                     results[motif].push_back(match_with_variant{m.pos + current.seq_start_pos,m.score,current.vs});
                 }
             }    
@@ -441,13 +440,11 @@ namespace MOODS { namespace scan{
                       (nv.end_pos == seq.size() && nv.modified_seq.size() == 0))
                     )
                 {
-
                     string next_prefix = current.prefix + seq.substr(cv.end_pos, nv.start_pos - cv.end_pos) + nv.modified_seq;
                     auto next_variants = current.vs;
                     next_variants.push_back(next_variant);
-
-                    state next = {next_variants, next_prefix, current.seq_start_pos, current.variant_start_pos};
-
+                    
+                    state next = {next_variants, next_prefix, current.seq_start_pos, current.variant_start_pos, current.depth + 1};
                     this->variant_matches_recursive(results, next, seq, variants, max_depth);
                 }
             }
@@ -456,6 +453,7 @@ namespace MOODS { namespace scan{
 
 
     std::vector<std::vector<match_with_variant>> Scanner::variant_matches(const std::string& seq, const std::vector<variant>& _variants, int max_depth){
+        
         
         // copy and sort the variants
         // we'll need to keep track of the original order of the variants for output purposes
