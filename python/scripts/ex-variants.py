@@ -56,14 +56,14 @@ indels.append(indel)
 
 # for boring reasons, we need to construct wrapper objects out of the variants
 variants = list(snps) + [MOODS.tools.variant(start, end, replacement) for (start, end, replacement) in indels]
-
+variants.reverse()
 
 
 # this gives all hits not affected by SNPs or indels
 results_plain = scanner.scan(seq)
 print("- Matches without variants")
 for hit in results_plain[0]:
-    print(";".join([str(hit.pos), str(hit.score)]))
+    print("Position: {}; Score: {}".format(str(hit.pos), str(hit.score)))
     print(seq)
     print(hit.pos*" " + len(matrices[0][0])*"^")
 
@@ -80,13 +80,18 @@ for hit in results_variants[0]:
     
     # for visualisation, we construct the modified sequence
     modified_seq = list(seq.lower())
+    hit_indicator = list(hit.pos*" " + len(matrices[0][0])*"^")
     for j in hit.variants:
-        modified_seq[variants[j].start_pos:variants[j].end_pos] = list(variants[j].modified_seq)
+        if variants[j].modified_seq != "":
+            modified_seq[variants[j].start_pos:variants[j].end_pos] = list(variants[j].modified_seq)
+        else:
+            modified_seq[variants[j].start_pos:variants[j].end_pos] = ["-"]
+            hit_indicator.insert(variants[j].start_pos, "-")
     modified_seq = "".join(modified_seq)
+    hit_indicator = "".join(hit_indicator)
 
-    print(";".join([str(hit.pos), str(hit.score), hit_variants]))
-    # print(seq)
+    print("Position: {}; Score: {}; Variants: {}".format(str(hit.pos), str(hit.score), hit_variants))
     print(modified_seq)
-    print(hit.pos*" " + len(matrices[0][0])*"^")
+    print(hit_indicator)
 
 
