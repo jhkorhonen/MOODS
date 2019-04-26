@@ -12,7 +12,6 @@
 #include <memory>
 #include <algorithm>
 
-
 #include "moods.h"
 #include "scanner.h"
 #include "motif.h"
@@ -428,7 +427,7 @@ namespace MOODS { namespace scan{
                 variant cv = variants[current.vs.back()];
                 variant nv = variants[next_variant];
 
-                if (nv.start_pos - cv.end_pos >= remaining){
+                if (nv.start_pos >= remaining + cv.end_pos){
                     break;
                 }
 
