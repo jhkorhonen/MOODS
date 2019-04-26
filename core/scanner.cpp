@@ -458,9 +458,23 @@ namespace MOODS { namespace scan{
     std::vector<std::vector<match_with_variant>> Scanner::variant_matches(const std::string& seq, const std::vector<variant>& _variants, int max_depth){
         
         // copy and sort the variants
-        std::vector<variant> variants = _variants;
-        std::sort(variants.begin(), variants.end());
-
+        // we'll need to keep track of the original order of the variants for output purposes
+        std::vector< std::pair<variant, size_t> > v;
+        
+        for (size_t i = 0; i < _variants.size(); ++i){
+            std::pair<variant,size_t> P = std::make_pair(_variants[i],i);
+            v.push_back(P);
+        }
+        std::sort(v.begin(), v.end());
+        
+        std::vector<variant> variants;
+        std::vector<size_t> variants_permutation;
+        
+        for (size_t i = 0; i < v.size(); ++i){
+            variants.push_back(v[i].first);
+            variants_permutation.push_back(v[i].second);
+        }
+        
         vector<vector<match_with_variant>> results(this->size(), vector<match_with_variant>());
 
         for (size_t i = 0; i < variants.size(); ++i){
@@ -492,12 +506,19 @@ namespace MOODS { namespace scan{
                         this->variant_matches_recursive(results, s, seq, variants, max_depth);
             }
         }
-
+        
+        // fix indexing for variants stored in matches
+        // TODO: do this immediately when constructing matches instead of postprocessing?
+        for (size_t m = 0; m < results.size(); ++m){
+            for (size_t i = 0; i < results[m].size(); ++i){
+                for (size_t j = 0; j < results[m][i].variants.size(); ++j){
+                    results[m][i].variants[j] = variants_permutation[results[m][i].variants[j]];
+                }
+            }
+        }
+        
         return results;
     }
-    
-
-
 
 } // namespace scan
 } // namespace MOODS
