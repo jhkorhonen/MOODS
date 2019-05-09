@@ -3,7 +3,7 @@ MOODS 1.9.4
 
 MOODS is a suite of algorithms for matching position weight matrices (PWM) against DNA sequences, featuring advanced matrix matching algorithms implemented in C++ that can be used to scan hundreds of matrices against chromosome-sized sequences in few seconds. MOODS has been designed with integration into large-scale python workflows in mind, but can also be used as a stand-alone analysis tool.
 
- * MOODS 1.9.3 released:
+ * MOODS 1.9.4 released:
    * pip support!
    * support for adjusting the precision of p-value computation
    * bugfixes for variant matching code
