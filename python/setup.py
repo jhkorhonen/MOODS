@@ -9,7 +9,6 @@ from distutils.core import setup, Extension
 common_includes = ["core/"]
 common_compile_args = ['-march=native', '-O3', '-fPIC', '--std=c++11']
 
-
 tools_mod = Extension('MOODS._tools',
                            sources=['core/tools_wrap.cxx',
                                     'core/moods_tools.cpp',
@@ -44,7 +43,7 @@ parsers_mod = Extension('MOODS._parsers',
                            )
 
 setup (name = 'MOODS-python',
-       version = '1.9.3',
+       version = '1.9.4',
        description = 'MOODS: Motif Occurrence Detection Suite',
        maintainer = "Janne H. Korhonen",
        maintainer_email = "janne.h.korhonen@gmail.com",

@@ -1,4 +1,4 @@
-MOODS-python 1.9.3
+MOODS-python 1.9.4
 ==================
 
 Motif Occurrence Detection Suite
