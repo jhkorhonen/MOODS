@@ -46,7 +46,7 @@ parsers_mod = Extension('MOODS._parsers',
 
 
 this_directory = path.abspath(path.dirname(__file__))
-with open(path.join(this_directory, 'readme.MD'), encoding='utf-8') as f:
+with open(path.join(this_directory, 'readme.MD')) as f:
     long_description = f.read()
 
 setup (name = 'MOODS-python',
@@ -61,6 +61,6 @@ setup (name = 'MOODS-python',
        ext_modules = [tools_mod, scan_mod, parsers_mod],
        packages = ["MOODS"],
        scripts=['scripts/moods-dna.py'],
-       classifiers=["Topic :: Scientific/Engineering :: Bio-Informatics"]
+       classifiers=["Topic :: Scientific/Engineering :: Bio-Informatics"],
        keywords="PWM, PSSM, motif scan"
 )
