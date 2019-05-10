@@ -32,7 +32,7 @@ Alternatively, you can install MOODS from the source package:
 
 (a) Compile the extensions in place and create a symlink under `scripts/`
 (if you just want to test things without installing to Python library path,
-or you are simply planning to use the `moods_dna.py` scripts for basic 
+or you are simply planning to use the `moods-dna.py` scripts for basic 
 analysis):
 
     python setup.py build_ext --inplace
@@ -47,12 +47,12 @@ analysis):
 
     sudo python setup.py install
 
-You can test MOODS by running the `moods_dna.py` script with
+You can test MOODS by running the `moods-dna.py` script with
 the example data provided with the package:
 
     cd scripts/
-    python moods_dna.py -m example-data/matrices/*.{pfm,adm} -s example-data/seq/chr1-5k-55k.fa -p 0.0001
-    python moods_dna.py --help
+    python moods-dna.py -m example-data/matrices/*.{pfm,adm} -s example-data/seq/chr1-5k-55k.fa -p 0.0001
+    python moods-dna.py --help
 
 
 Documentation

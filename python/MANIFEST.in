@@ -3,5 +3,5 @@ include readme.MD
 include scripts/example-data/readme.MD
 include scripts/example-data/seq/chr1-5k-55k.fa
 include scripts/example-data/matrices/*
-include scripts/ex-*.py scripts/moods_dna.py
+include scripts/ex-*.py scripts/moods-dna.py
 include COPYING.BIOPYTHON COPYING.GPLv3
