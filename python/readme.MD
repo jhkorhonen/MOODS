@@ -9,7 +9,7 @@ https://www.cs.helsinki.fi/group/pssmfind/
 Installing from PyPi
 --------------------
 
-The easiest way to install MOODS is using pip:
+The quickest way to install MOODS is using pip:
 
 (a) Install the module to your local Python library path:
 
@@ -19,21 +19,28 @@ The easiest way to install MOODS is using pip:
 
     pip install moods-python
 
-Installing the MOODS package from PyPi installs the `moods-dna` command to you
-Python path. Test it by running:
+Installing the MOODS package from PyPi installs the `moods-dna.py` script to
+your Python executable directory. Test it by running:
 
-    moods-dna --help
+    moods-dna.py --help
+
+(Note that this assumes that the appropriate Python executable directory is in
+your path. For example, if you install the package with --user, you can do this
+with
+
+    PATH="$PATH:`python -m site --user-base`/bin"
+
+if it doesn't work otherwise.)
 
 
 Installing from Source
 ----------------------
 
-Alternatively, you can install MOODS from the source package:
+Alternatively, you can install MOODS from the source package, for example if you
+don't have your pip configured or you just want a quick throwaway install.
 
-(a) Compile the extensions in place and create a symlink under `scripts/`
-(if you just want to test things without installing to Python library path,
-or you are simply planning to use the `moods-dna.py` scripts for basic 
-analysis):
+(a) If you don't want to bother installing MOODS, you can compile the extensions
+    in place and create a symlink under `scripts/`:
 
     python setup.py build_ext --inplace
     cd scripts
