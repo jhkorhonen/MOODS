@@ -44,7 +44,7 @@ don't have your pip configured or you just want a quick throwaway install.
 
     python setup.py build_ext --inplace
     cd scripts
-    ln -s ../MOODS/    
+    ln -s ../MOODS/
 
 (b) Install the module to your local Python library path:
 

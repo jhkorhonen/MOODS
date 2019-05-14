@@ -4,7 +4,7 @@
 setup.py file for MOODS
 """
 
-from distutils.core import setup, Extension
+from setuptools import setup, Extension
 from os import path
 
 common_includes = ["core/"]
@@ -53,7 +53,7 @@ setup (name = 'MOODS-python',
        version = '1.9.4',
        description = 'MOODS: Motif Occurrence Detection Suite',
        long_description = long_description,
-       long_description_content_type="text/markdown",
+       long_description_content_type='text/markdown',
        maintainer = "Janne H. Korhonen",
        maintainer_email = "janne.h.korhonen@gmail.com",
        url='https://www.cs.helsinki.fi/group/pssmfind/',
