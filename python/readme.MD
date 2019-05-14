@@ -17,7 +17,7 @@ The quickest way to install MOODS is using pip:
 
 (b) Install the module for all users:
 
-    pip install MOODS-python
+    sudo pip install MOODS-python
 
 Installing the MOODS package from PyPi installs the `moods-dna.py` script to
 your Python executable directory. Test it by running:
