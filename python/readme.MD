@@ -13,11 +13,11 @@ The quickest way to install MOODS is using pip:
 
 (a) Install the module to your local Python library path:
 
-    pip install --user moods-python
+    pip install --user MOODS-python
 
 (b) Install the module for all users:
 
-    pip install moods-python
+    pip install MOODS-python
 
 Installing the MOODS package from PyPi installs the `moods-dna.py` script to
 your Python executable directory. Test it by running:
