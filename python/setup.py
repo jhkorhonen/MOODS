@@ -50,7 +50,7 @@ with open(path.join(this_directory, 'readme.MD')) as f:
     long_description = f.read()
 
 setup (name = 'MOODS-python',
-       version = '1.9.4',
+       version = '1.9.4.1',
        description = 'MOODS: Motif Occurrence Detection Suite',
        long_description = long_description,
        long_description_content_type='text/markdown',

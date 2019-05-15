@@ -25,7 +25,7 @@ Download
 
 Download the package:
 
- * Python 2.7: [MOODS-python-1.9.4.tar.gz](https://github.com/jhkorhonen/MOODS/releases/download/v1.9.4/MOODS-python-1.9.4.tar.gz)
+ * Python 2.7: [MOODS-python-1.9.4.1.tar.gz](https://github.com/jhkorhonen/MOODS/releases/download/v1.9.4.1/MOODS-python-1.9.4.1.tar.gz)
  
 Or install from [PyPi](https://pypi.org/project/MOODS-python/) using pip:
 
