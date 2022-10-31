@@ -94,8 +94,6 @@ namespace MOODS { namespace scan{
             }
         }
 
-        bool done = 0;
-
         int iteration = 0;
 
 
@@ -249,7 +247,7 @@ namespace MOODS { namespace scan{
                 }
 
                 for (size_t j = 0; j < cols; ++j){
-                    CODE = MASK & (CODE << SHIFT) | alphabet_map[seq[i+j+q-1]];
+                    CODE = (MASK & (CODE << SHIFT)) | alphabet_map[seq[i+j+q-1]];
                     score += matrix[CODE][j];
                 }
 
