@@ -141,35 +141,35 @@ double threshold_from_p_with_precision(const score_matrix &pssm, const vector<do
 {
     
     // Approximate the scoring matrix with integer matrix for DP
-    long a = pssm.size();
-    long n = pssm[0].size();
+    size_t a = pssm.size();
+    size_t n = pssm[0].size();
 
 
-    vector<vector<long> > mat(a, vector<long>(n));
+    vector<vector<size_t> > mat(a, vector<size_t>(n));
 
-    long maxT = 0;
-    long minV = std::numeric_limits<long>::max();
+    size_t maxT = 0;
+    size_t minV = std::numeric_limits<size_t>::max();
 
     for (size_t i = 0; i < n; ++i)
     {
         for (size_t j = 0; j < a; ++j)
         {
             if (pssm[j][i] > 0.0){
-                mat[j][i] = (long) ( precision * pssm[j][i] + 0.5 );
+                mat[j][i] = (size_t) ( precision * pssm[j][i] + 0.5 );
             }
             else {
-                mat[j][i] = (long) ( precision * pssm[j][i] - 0.5 );
+                mat[j][i] = (size_t) ( precision * pssm[j][i] - 0.5 );
             }
         }
     }
 
     for (size_t i = 0; i < n; ++i)
     {
-        long max = mat[0][i];
-        long min = max;
+        size_t max = mat[0][i];
+        size_t min = max;
         for (size_t j = 1; j < a; ++j)
         {
-            long v = mat[j][i];
+            size_t v = mat[j][i];
             if (max < v)
                 max = v;
             else if (min > v)
@@ -180,7 +180,7 @@ double threshold_from_p_with_precision(const score_matrix &pssm, const vector<do
             minV = min;
     }
 
-    long R = maxT - n * minV;
+    size_t R = maxT - n * minV;
 
     vector<double> table0(R + 1, 0.0);
     vector<double> table1(R + 1, 0.0);
@@ -193,10 +193,10 @@ double threshold_from_p_with_precision(const score_matrix &pssm, const vector<do
         for (size_t j = 0; j < a; ++j)
         {
             long s = mat[j][i] - minV;
-            for (long r = s; r <= R; ++r)
+            for (size_t r = s; r <= R; ++r)
                 table1[r] += bg[j] * table0[r - s];
         }
-        for (long r = 0; r <= R; ++r)
+        for (size_t r = 0; r <= R; ++r)
         {
             table0[r] = table1[r];
             table1[r] = 0.0;
@@ -211,7 +211,7 @@ double threshold_from_p_with_precision(const score_matrix &pssm, const vector<do
         return max_score(pssm) - min_delta(pssm)/2;
     }
         
-    for (long r = R-1; r >= 0; --r)
+    for (size_t r = R-1; r != ((size_t)-1); --r)
     {
         sum += table0[r];
         if (sum > p)
@@ -439,8 +439,8 @@ double min_score(const score_matrix &mat, const size_t a){
 double threshold_from_p_with_precision(const score_matrix &pssm, const vector<double> &bg, const double &p, const double precision, const size_t a)
 {
     
-    long rows = pssm.size();
-    long cols = pssm[0].size();
+    size_t rows = pssm.size();
+    size_t cols = pssm[0].size();
 
     unsigned int q = MOODS::misc::q_gram_size(rows, a);
 
@@ -449,20 +449,20 @@ double threshold_from_p_with_precision(const score_matrix &pssm, const vector<do
     const bits_t Q_CODE_SIZE  =  (1 << (SHIFT * (q-1)));
     const bits_t Q_MASK = Q_CODE_SIZE - 1;
 
-    vector<vector<long> > mat(rows, vector<long>(cols));
+    vector<vector<size_t> > mat(rows, vector<size_t>(cols));
 
-    long maxT = 0;
-    long minV = std::numeric_limits<long>::max();
+    size_t maxT = 0;
+    size_t minV = std::numeric_limits<size_t>::max();
 
     for (size_t i = 0; i < cols; ++i)
     {
         for (size_t CODE = 0; CODE < rows; ++CODE)
         {
             if (pssm[CODE][i] > 0.0){
-                mat[CODE][i] = (long) ( precision * pssm[CODE][i] + 0.5 );
+                mat[CODE][i] = (size_t) ( precision * pssm[CODE][i] + 0.5 );
             }
             else {
-                mat[CODE][i] = (long) ( precision * pssm[CODE][i] - 0.5 );
+                mat[CODE][i] = (size_t) ( precision * pssm[CODE][i] - 0.5 );
             }
         }
     }
@@ -470,11 +470,11 @@ double threshold_from_p_with_precision(const score_matrix &pssm, const vector<do
 
     for (size_t i = 0; i < cols; ++i)
     {
-        long max = mat[0][i];
-        long min = max;
+        size_t max = mat[0][i];
+        size_t min = max;
         for (size_t CODE = 1; CODE < rows; ++CODE)
         {
-            long v = mat[CODE][i];
+            size_t v = mat[CODE][i];
             if (max < v)
                 max = v;
             else if (min > v)
@@ -485,7 +485,7 @@ double threshold_from_p_with_precision(const score_matrix &pssm, const vector<do
             minV = min;
     }
 
-    long R = maxT - cols * minV;
+    size_t R = maxT - cols * minV;
 
     vector<vector<double>> table0(Q_CODE_SIZE, vector<double>(R + 1, 0));
 
@@ -508,8 +508,8 @@ double threshold_from_p_with_precision(const score_matrix &pssm, const vector<do
             bits_t CODE_PREFIX = (CODE >> SHIFT) & Q_MASK;
             bits_t CODE_SUFFIX = CODE & Q_MASK;
             bits_t CHAR = CODE & A_MASK;
-            long s = mat[CODE][i] - minV;
-            for (long r = s; r <= R; ++r)
+            size_t s = mat[CODE][i] - minV;
+            for (size_t r = s; r <= R; ++r)
                 table1[CODE_SUFFIX][r] += bg[CHAR] * table0[CODE_PREFIX][r - s];
         }
         table0 = table1;
@@ -517,7 +517,7 @@ double threshold_from_p_with_precision(const score_matrix &pssm, const vector<do
 
 
     vector<double> table2(R+1, 0.0);
-    for (long r = 0; r < R+1; ++r){
+    for (size_t r = 0; r < R+1; ++r){
         for (bits_t CODE = 0; CODE < Q_CODE_SIZE; ++CODE){
             table2[r] += table0[CODE][r];
         }
@@ -530,7 +530,7 @@ double threshold_from_p_with_precision(const score_matrix &pssm, const vector<do
         return max_score(pssm, a) - min_delta(pssm)/2;;
     }
 
-    for (long r = R-1; r >= 0; --r)
+    for (size_t r = R-1; r >= 0; --r)
     {
         sum += table2[r];
         if (sum > p)
@@ -585,7 +585,7 @@ vector<MOODS::variant> snp_variants(const std::string &seq){
     
     for (size_t i = 0; i < seq.size(); ++i){
         for (size_t j = 0; j < snp_alt[seq[i]].size(); ++j){
-            ret.push_back(variant{i,i+1,snp_alt[seq[i]].substr(j,1)});
+            ret.emplace_back(i,i+1,snp_alt[seq[i]].substr(j,1));
         }
     }
     

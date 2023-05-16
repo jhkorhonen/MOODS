@@ -23,6 +23,8 @@ public:
     virtual unsigned int alphabet_size() = 0;
     virtual unsigned int window_pos() = 0;
     virtual double threshold() = 0;
+
+    virtual ~Motif() = default;
 };
 
 

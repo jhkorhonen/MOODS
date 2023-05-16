@@ -25,17 +25,17 @@ vector<double> expected_differences(const score_matrix &mat, const vector<double
     size_t m = mat[0].size();
     vector<double> ret(m);
 
-    for (int i = 0; i < m; ++i)
+    for (size_t i = 0; i < m; ++i)
     {
         double max = -std::numeric_limits<double>::infinity();
-        for (int j = 0; j < a; ++j)
+        for (size_t j = 0; j < a; ++j)
         {
             max = std::max(max, mat[j][i]);
         }
 
         ret[i] = max;
 
-        for (int j = 0; j < a; ++j)
+        for (size_t j = 0; j < a; ++j)
         {
             ret[i] -= bg[j] * mat[j][i];
         }
@@ -59,9 +59,9 @@ unsigned int window_position(const vector<double> &ed, unsigned int l, unsigned 
         }
 
         double max = current;
-        int window_pos = 0;
+        unsigned int window_pos = 0;
 
-        for (int i = 0; i < m - l; ++i)
+        for (unsigned int i = 0; i < m - l; ++i)
         {
             current -= ed[i];
             current += ed[i+l];
@@ -93,11 +93,11 @@ vector<unsigned int> compute_lookahead_order(const vector<double> &ed, unsigned 
     else
     {
         vector<unsigned int> order(m-l, 0);
-        for (int i = 0; i < window_pos; ++i)
+        for (unsigned int i = 0; i < window_pos; ++i)
         {
             order[i] = i;
         }
-        for (int i = window_pos+l; i < m; ++i)
+        for (unsigned int i = window_pos+l; i < m; ++i)
         {
             order[i-l] = i;
         }
@@ -122,7 +122,7 @@ vector<double> compute_lookahead_scores(const score_matrix &mat, const vector<un
         std::vector<double> scores(m-l,0);
         
         double total = 0;
-        for (int i = m-l-1; i >= 0; --i)
+        for (unsigned int i = m-l-1; i != ((unsigned int)-1); --i)
         {
             double max = -std::numeric_limits<double>::infinity();
             for (unsigned int j = 0; j < a; ++j)

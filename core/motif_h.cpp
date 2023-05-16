@@ -23,8 +23,8 @@ vector<double> MotifH::expected_scores(const vector<double> &bg){
     const bits_t A_MASK = (1 << (SHIFT)) - 1;
 
     vector<double> ret(cols, 0);
-    for (int i = 0; i < cols; ++i){
-        for (int j = 0; j < rows; ++j){
+    for (unsigned int i = 0; i < cols; ++i){
+        for (unsigned int j = 0; j < rows; ++j){
             double bg_prop = 1;
             for (unsigned int k = 0; k < q; ++k){
                 bg_prop *= bg[A_MASK & (j >> (SHIFT * (q - 1 - k)))];
@@ -39,7 +39,10 @@ vector<double> MotifH::expected_scores(const vector<double> &bg){
 
 vector<vector<double>> MotifH::max_scores_f(size_t start, size_t end){
 
-    double wsize = end - start;
+    size_t wsize = end - start;
+    if (end <= start) {
+        wsize = 0;
+    }
     vector<vector<double>> max_scores (wsize, vector<double> (Q_CODE_SIZE, 0));
 
     if (end > start){
@@ -47,7 +50,7 @@ vector<vector<double>> MotifH::max_scores_f(size_t start, size_t end){
             max_scores[0][j & Q_MASK] = std::max(mat[j][start], max_scores[0][j & Q_MASK]);
         }
 
-        for (unsigned int i = 1 ; i < wsize; ++i){
+        for (size_t i = 1 ; i < wsize; ++i){
             for (unsigned int j = 0; j < rows; ++j){
                 max_scores[i][j & Q_MASK] = std::max(mat[j][i+start] + max_scores[i-1][j >> SHIFT], max_scores[i][j & Q_MASK]);
             }
@@ -59,7 +62,10 @@ vector<vector<double>> MotifH::max_scores_f(size_t start, size_t end){
 
 vector<vector<double>> MotifH::max_scores_b(size_t start, size_t end){
 
-    double wsize = end - start;
+    size_t wsize = end - start;
+    if (end <= start) {
+        wsize = 0;
+    }
     vector<vector<double>> max_scores (wsize, vector<double> (Q_CODE_SIZE, 0));
 
 
@@ -70,7 +76,7 @@ vector<vector<double>> MotifH::max_scores_b(size_t start, size_t end){
             max_scores[wsize-1][j >> SHIFT] = std::max(mat[j][end-1], max_scores[wsize-1][j >> SHIFT]);
         }
 
-        for (unsigned int i = 1; i < wsize; ++i){
+        for (size_t i = 1; i < wsize; ++i){
             
             for (unsigned int j = 0; j < rows; ++j){
                 max_scores[wsize-i-1][j >> SHIFT] = std::max(mat[j][end-i-1] + max_scores[wsize-i][j & Q_MASK], max_scores[wsize-i-1][j >> SHIFT]);
@@ -253,7 +259,7 @@ std::pair<bool, double> MotifH::check_hit(const std::string& s, const vector<uns
                 return std::make_pair(false, score);
             }
 
-            CODE = MASK & (CODE << SHIFT) ^ alphabet_map[s[ii + i + q - 1]];
+            CODE = (MASK & (CODE << SHIFT)) ^ alphabet_map[s[ii + i + q - 1]];
             score += mat[CODE][i];
         }
     }
