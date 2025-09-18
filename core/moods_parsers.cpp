@@ -54,7 +54,7 @@ namespace MOODS { namespace parsers{
         size_t a = mat.size();
         size_t n = mat[0].size();
         
-        if (a == 0 or n == 0){
+        if (a == 0 || n == 0){
             return score_matrix();
         }
         
@@ -73,7 +73,7 @@ namespace MOODS { namespace parsers{
         size_t a = mat.size();
         size_t n = mat[0].size();
         
-        if (a == 0 or n == 0){
+        if (a == 0 || n == 0){
             return score_matrix();
         }
         
